@@ -73,8 +73,8 @@ npx tsc --noEmit   # 仅类型检查，不输出
 
 ## 开发原则（源自 `.specify/memory/constitution.md`）
 
-1. **MVP 优先** — 先跑通核心路径，跳过边界情况和非阻塞问题
-2. **核心路径正确性** — 工单流程（质检员创建 → 施工方处理 → 管理员监控 → 知识沉淀）必须严格匹配 PRD
+1. **MVP 优先** — 先跑通核心路径，跳过边界情况和非阻塞问题，不考虑性能指标和优化
+2. **核心路径正确性** — 流程必须严格匹配 PRD
 3. **最小抽象** — 不做推测性抽象和防御性编程。单次使用的代码直接内联；3 处以上使用再抽取
 4. **不写测试除非被要求** — MVP 阶段类型检查 + lint 通过即可
 5. **垂直切片** — 一次实现一个用户故事的全栈贯通
@@ -107,3 +107,10 @@ npx tsc --noEmit   # 仅类型检查，不输出
 - shadcn/ui 样式：`radix-nova`，基础色 neutral，启用 CSS 变量
 - UI 风格：简约专业白底浅蓝（Notion 风格），不用渐变/重阴影/发光效果
 - 工单 ID 为自增 INT（即工单编号）
+
+## Active Technologies
+- TypeScript 5.x, Next.js 16.2.3 (App Router) + React 19.2, shadcn/ui 4.2, lucide-react 1.8, Tailwind CSS 4, Biome 2.2 (001-project-init)
+- N/A（本阶段不涉及数据库） (001-project-init)
+
+## Recent Changes
+- 001-project-init: Added TypeScript 5.x, Next.js 16.2.3 (App Router) + React 19.2, shadcn/ui 4.2, lucide-react 1.8, Tailwind CSS 4, Biome 2.2
