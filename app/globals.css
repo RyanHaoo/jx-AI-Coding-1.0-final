@@ -81,6 +81,19 @@
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
+
+  /* Stitch Design System Tokens */
+  --stitch-primary: #005ac2;
+  --stitch-primary-container: #d8e2ff;
+  --stitch-on-primary-container: #004eaa;
+  --stitch-on-surface-variant: #566166;
+  --stitch-background: #f7f9fb;
+  --stitch-surface: #f7f9fb;
+  --stitch-surface-container-low: #f0f4f7;
+  --stitch-surface-container: #e8eff3;
+  --stitch-surface-container-lowest: #ffffff;
+  --stitch-surface-container-high: #e1e9ee;
+  --stitch-outline-variant: #a9b4b9;
 }
 
 .dark {
