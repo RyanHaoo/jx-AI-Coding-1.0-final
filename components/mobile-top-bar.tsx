@@ -10,7 +10,7 @@ interface MobileTopBarProps {
 
 export function MobileTopBar({ title, onMenuClick }: MobileTopBarProps) {
   return (
-    <header className="flex h-12 items-center border-b bg-white px-4">
+    <header className="flex h-12 items-center bg-[var(--stitch-surface-container-lowest)] px-4">
       <Button
         variant="ghost"
         size="icon-sm"
@@ -19,7 +19,7 @@ export function MobileTopBar({ title, onMenuClick }: MobileTopBarProps) {
       >
         <Menu />
       </Button>
-      <h1 className="ml-2 text-base font-medium">{title}</h1>
+      <h1 className="ml-2 text-base font-medium text-foreground">{title}</h1>
     </header>
   );
 }

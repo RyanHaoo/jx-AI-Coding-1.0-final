@@ -41,15 +41,20 @@ export default async function DashboardLayout({
   }
 
   return (
-    <div className="flex min-h-full flex-1 flex-col">
-      <DashboardTopBar
-        userName={userName}
-        department={department}
-        identities={identities}
-      />
-      <div className="flex flex-1">
-        <DashboardSideNav />
-        <main className="flex-1 bg-zinc-50 p-6">{children}</main>
+    <div className="flex min-h-full flex-1">
+      {/* Sidebar */}
+      <DashboardSideNav />
+
+      {/* Main area */}
+      <div className="flex flex-1 flex-col border-l border-[var(--stitch-outline-variant)]/20">
+        <DashboardTopBar
+          userName={userName}
+          department={department}
+          identities={identities}
+        />
+        <main className="flex-1 bg-[var(--stitch-surface-container)] p-6">
+          {children}
+        </main>
       </div>
     </div>
   );

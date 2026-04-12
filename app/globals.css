@@ -74,7 +74,7 @@
   --chart-3: #2a3439;
   --chart-4: #a9b4b9;
   --chart-5: #e8eff3;
-  --radius: 0.25rem;
+  --radius: 0.625rem;
   --sidebar: #ffffff;
   --sidebar-foreground: #2a3439;
   --sidebar-primary: #005ac2;
@@ -83,6 +83,19 @@
   --sidebar-accent-foreground: #005ac2;
   --sidebar-border: #a9b4b9;
   --sidebar-ring: #005ac2;
+
+  /* Stitch Design System Tokens */
+  --stitch-primary: #005ac2;
+  --stitch-primary-container: #d8e2ff;
+  --stitch-on-primary-container: #004eaa;
+  --stitch-on-surface-variant: #566166;
+  --stitch-background: #f7f9fb;
+  --stitch-surface: #f7f9fb;
+  --stitch-surface-container-low: #f0f4f7;
+  --stitch-surface-container: #e8eff3;
+  --stitch-surface-container-lowest: #ffffff;
+  --stitch-surface-container-high: #e1e9ee;
+  --stitch-outline-variant: #a9b4b9;
 }
 
 .dark {
