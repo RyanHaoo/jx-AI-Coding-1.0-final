@@ -18,6 +18,39 @@ npm run format     # Biome 格式化并写入
 npx tsc --noEmit   # 仅类型检查，不输出
 ```
 
+## 项目结构
+
+```
+app/
+├── layout.tsx                    # 根布局（Geist 字体、zh-CN、metadata）
+├── page.tsx                      # 首页（双端入口按钮）
+├── globals.css                   # 全局样式（shadcn/ui CSS 变量）
+├── login/
+│   └── page.tsx                  # 登录页（工号/密码 + redirect 校验）
+├── mobile/
+│   ├── layout.tsx                # 移动端共享布局（顶栏 + 侧边抽屉）
+│   ├── assistant/page.tsx        # 智能助手（占位页）
+│   └── tickets/
+│       ├── page.tsx              # 工单列表（占位页）
+│       └── [id]/page.tsx         # 工单详情（占位页）
+└── dashboard/
+    ├── layout.tsx                # PC 端共享布局（顶栏 + 左侧导航）
+    ├── overview/page.tsx         # 数据大盘（占位页）
+    ├── tickets/page.tsx          # 工单中心（占位页）
+    └── knowledge/page.tsx        # 知识运营（占位页）
+
+components/
+├── ui/                           # shadcn/ui 组件（button, input, label, sheet）
+├── mobile-top-bar.tsx            # 移动端顶栏（汉堡菜单 + 标题）
+├── mobile-side-drawer.tsx        # 移动端侧边目录（Sheet 从左侧滑入）
+├── dashboard-top-bar.tsx         # PC 端顶栏（标题 + 用户区域占位）
+└── dashboard-side-nav.tsx        # PC 端侧边导航（3 个菜单项 + 高亮）
+
+lib/
+├── utils.ts                      # cn() 工具函数
+└── types.ts                      # 全局类型（6 枚举 + 5 实体接口）
+```
+
 ## 架构
 
 **Next.js 16 (App Router)** 单一代码库，前后端统一。
@@ -68,8 +101,15 @@ npx tsc --noEmit   # 仅类型检查，不输出
 本项目使用 Next.js 16，API 与训练数据可能存在显著差异：
 
 - **Middleware 已更名为 Proxy**：使用 `proxy.ts`（而非 `middleware.ts`），导出 `proxy` 函数或默认导出，`config.matcher` 用法不变
+- **动态路由 params 是 Promise**：用 `React.use(params)` 解包，不要用条件判断绕过
+- **useSearchParams 必须包 Suspense**：否则 SSG prerender 报错
 - **不确定的 API 先查文档**：使用任何 Next.js API 前，先阅读 `node_modules/next/dist/docs/` 下的对应文档
 - 默认使用 Server Components，仅在需要交互时添加 `'use client'`
+
+## 开发流程经验
+
+- 批量创建/修改文件后，先跑 `npm run format` + `npm run lint`，再跑 `tsc --noEmit`，最后再提交
+- 局部修改文件后提交前，跑一遍 `npm run lint` 确认通过
 
 ## 开发原则（源自 `.specify/memory/constitution.md`）
 

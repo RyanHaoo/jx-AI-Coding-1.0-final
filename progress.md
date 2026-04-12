@@ -2,7 +2,7 @@
 
 > 策略：模块优先，假数据先行。每个模块先用 mock 数据完成界面，确认交互无误后再接真实数据。
 
-## 阶段 1：项目初始化
+## 阶段 1：项目初始化（已完成）
 - 创建 Next.js 项目，配置 TypeScript、Tailwind CSS、shadcn/ui、lucide-react
 - 定义全局类型（用户、项目、工单、角色等枚举与接口）
 - 搭建基础路由结构（`/`、`/login`、`/mobile/*`、`/dashboard/*`）
