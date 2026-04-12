@@ -9,14 +9,14 @@
 - 首页（`/`）— 移动端入口 + PC 后台入口两个大按钮
 
 ## 阶段 2：登录与身份系统
-- 配置 Supabase（Auth + Database）
-- 创建用户数据表（profiles、projects、user_roles）及 RLS 策略
-- 用户小组件（User Avatar Chip）、项目小组件（Project Chip）
-- 实现登录页（`/login`），对接 Supabase Auth
-- 实现登录后身份选择流程（多项目/角色选择，写入会话状态）
-- 实现鉴权守卫中间件（移动端需登录、PC 端需管理员）
-- 导航用户模块（退出登录、切换身份提示）
-- 准备种子数据（测试用户、项目、角色绑定）
+- [x] 配置 Supabase（Auth + Database）
+- [x] 创建用户数据表（profiles、projects、user_roles）及 RLS 策略
+- [x] 准备种子数据（测试用户、项目、角色绑定）
+- [ ] 用户小组件（User Avatar Chip）、项目小组件（Project Chip）
+- [ ] 实现登录页（`/login`），对接 Supabase Auth
+- [ ] 实现登录后身份选择流程（多项目/角色选择，写入会话状态）
+- [ ] 实现鉴权守卫中间件（移动端需登录、PC 端需管理员）
+- [ ] 导航用户模块（退出登录、切换身份提示）
 
 ## 阶段 3：工单组件及其状态更改动作
 - 创建工单数据表（tickets、ticket_logs）及 RLS 策略
