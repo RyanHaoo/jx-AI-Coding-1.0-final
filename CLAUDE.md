@@ -148,11 +148,17 @@ lib/
 - UI 风格：简约专业白底浅蓝（Notion 风格），不用渐变/重阴影/发光效果
 - 工单 ID 为自增 INT（即工单编号）
 
+## Stitch MCP 项目 ID
+
+- Stitch 项目 ID：`16591807519307787618`
+
 ## Active Technologies
 - TypeScript 5.x, Next.js 16.2.3 (App Router) + React 19.2, shadcn/ui 4.2, lucide-react 1.8, Tailwind CSS 4, Biome 2.2 (001-project-init)
 - N/A（本阶段不涉及数据库） (001-project-init)
 - TypeScript 5.x / PostgreSQL 15 (Supabase) + Next.js 16.2.3 (App Router), Supabase (Auth + Database + RLS) (002-auth-identity-system)
 - Supabase Postgres (002-auth-identity-system)
+- TypeScript 5.x + Next.js 16.2.3 (App Router), React 19.2, @supabase/supabase-js, @supabase/ssr, shadcn/ui 4.2, lucide-react 1.8, Tailwind CSS 4 (002-auth-identity-system)
+- Supabase Postgres (已有 profiles/projects/user_roles 表), httpOnly cookie (身份选择状态) (002-auth-identity-system)
 
 ## Recent Changes
 - 001-project-init: Added TypeScript 5.x, Next.js 16.2.3 (App Router) + React 19.2, shadcn/ui 4.2, lucide-react 1.8, Tailwind CSS 4, Biome 2.2
