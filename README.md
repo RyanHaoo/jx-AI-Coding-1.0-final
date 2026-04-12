@@ -1,36 +1,35 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 建筑施工质检情报员
 
-## Getting Started
+AI 驱动的建筑施工工单管理系统。
 
-First, run the development server:
+## 快速开始
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+打开 http://localhost:3000 查看应用。
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 测试账号
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+所有账号密码均为 `test123456`。
 
-## Learn More
+| 工号 | 姓名 | 角色 | 项目 |
+|------|------|------|------|
+| QC001 | 张质检 | 质检员 | 翡翠湾花园 |
+| QC001 | 张质检 | 质检员 | 星河产业园 |
+| SV001 | 李施工 | 施工方 | 翡翠湾花园 |
+| AD001 | 王管理 | 管理员 | 翡翠湾花园 |
+| AD001 | 王管理 | 管理员 | 星河产业园 |
 
-To learn more about Next.js, take a look at the following resources:
+- QC001 和 AD001 拥有多身份，登录后会弹出身份选择弹框
+- SV001 只有单一身份，登录后自动进入
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 代码检查
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+npm run format    # Biome 格式化
+npm run lint      # Biome 检查
+npx tsc --noEmit  # TypeScript 类型检查
+```

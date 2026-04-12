@@ -31,6 +31,7 @@ export interface Profile {
   name: string;
   department: string;
   avatar_url: string;
+  auth_email: string;
 }
 
 export interface Project {
@@ -74,4 +75,20 @@ export interface TicketLog {
   field_diff: Record<string, unknown>;
   note: string;
   created_at: string;
+}
+
+// Auth & Identity
+
+export interface IdentityOption {
+  projectId: number;
+  projectName: string;
+  role: Role;
+}
+
+export interface LoginResult {
+  success: boolean;
+  error?: string;
+  needsIdentitySelect?: boolean;
+  identities?: IdentityOption[];
+  redirectUrl?: string;
 }

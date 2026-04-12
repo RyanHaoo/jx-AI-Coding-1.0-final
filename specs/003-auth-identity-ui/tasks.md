@@ -19,13 +19,13 @@
 
 **Purpose**: 安装依赖、配置环境变量、创建 Supabase 客户端基础设施
 
-- [ ] T001 Install Supabase dependencies: `npm install @supabase/supabase-js @supabase/ssr`
-- [ ] T002 [P] Add environment variables to `.env.local`: `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` (obtain from Supabase Dashboard → Settings → API)
-- [ ] T003 [P] Create browser-side Supabase client in `lib/supabase/client.ts` using `createBrowserClient` from `@supabase/ssr`
-- [ ] T004 Create server-side Supabase client in `lib/supabase/server.ts` using `createServerClient` from `@supabase/ssr` with `cookies()` from `next/headers`
-- [ ] T005 Create proxy session refresh logic in `lib/supabase/proxy.ts` using `createServerClient` with `getClaims()` for auth token refresh
-- [ ] T006 Create Next.js 16 proxy entry in `proxy.ts` (project root) that imports and calls `updateSession` from `lib/supabase/proxy.ts`, with `config.matcher` excluding static assets
-- [ ] T007 [P] Add `IdentityOption` interface and `LoginResult` type to `lib/types.ts` per data-model.md definitions
+- [x] T001 Install Supabase dependencies: `npm install @supabase/supabase-js @supabase/ssr`
+- [x] T002 [P] Add environment variables to `.env.local`: `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` (obtain from Supabase Dashboard → Settings → API)
+- [x] T003 [P] Create browser-side Supabase client in `lib/supabase/client.ts` using `createBrowserClient` from `@supabase/ssr`
+- [x] T004 Create server-side Supabase client in `lib/supabase/server.ts` using `createServerClient` from `@supabase/ssr` with `cookies()` from `next/headers`
+- [x] T005 Create proxy session refresh logic in `lib/supabase/proxy.ts` using `createServerClient` with `getClaims()` for auth token refresh
+- [x] T006 Create Next.js 16 proxy entry in `proxy.ts` (project root) that imports and calls `updateSession` from `lib/supabase/proxy.ts`, with `config.matcher` excluding static assets
+- [x] T007 [P] Add `IdentityOption` interface and `LoginResult` type to `lib/types.ts` per data-model.md definitions
 
 ---
 
@@ -35,9 +35,9 @@
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T008 Create identity cookie utility functions in `lib/auth.ts`: `getIdentityFromCookie()` (reads active_project_id, active_project_name, active_role from cookies), `writeIdentityCookie(projectId, projectName, role)` (sets httpOnly cookies), `clearIdentityCookie()` (deletes cookies), `getIdentitiesForUser(userId)` (queries user_roles + projects tables for identity options)
-- [ ] T009 [P] Update CSS variables in `app/globals.css` to match ConstructIntel Pro design system: `--primary` → `#005ac2`, `--primary-foreground` → `#f7f7ff`, `--background` → `#f7f9fb`, `--card` → `#ffffff`, `--input` → `#e8eff3`, `--muted-foreground` → `#566166`, `--border` → `#a9b4b9`; update `:root` and `.dark` blocks; set `--radius` to `0.25rem`
-- [ ] T010 [P] Add Noto Sans SC font via `next/font/google` in `app/layout.tsx`, add to CSS font stack as fallback for CJK characters
+- [x] T008 Create identity cookie utility functions in `lib/auth.ts`: `getIdentityFromCookie()` (reads active_project_id, active_project_name, active_role from cookies), `writeIdentityCookie(projectId, projectName, role)` (sets httpOnly cookies), `clearIdentityCookie()` (deletes cookies), `getIdentitiesForUser(userId)` (queries user_roles + projects tables for identity options)
+- [x] T009 [P] Update CSS variables in `app/globals.css` to match ConstructIntel Pro design system: `--primary` → `#005ac2`, `--primary-foreground` → `#f7f7ff`, `--background` → `#f7f9fb`, `--card` → `#ffffff`, `--input` → `#e8eff3`, `--muted-foreground` → `#566166`, `--border` → `#a9b4b9`; update `:root` and `.dark` blocks; set `--radius` to `0.25rem`
+- [x] T010 [P] Add Noto Sans SC font via `next/font/google` in `app/layout.tsx`, add to CSS font stack as fallback for CJK characters
 
 **Checkpoint**: Supabase 客户端就绪、cookie 工具函数可用、CSS 变量已匹配设计系统
 
@@ -51,12 +51,12 @@
 
 ### Implementation for User Story 1
 
-- [ ] T011 [US1] Add `IdentityOption` and `LoginResult` type exports to `lib/types.ts` if not done in T007
-- [ ] T012 [US1] Create login Server Action in `app/login/actions.ts`: `login(formData)` — lookup profile by number → get email via admin API → `signInWithPassword` → query identities → return LoginResult; `selectIdentity(formData)` — write identity cookie → redirect
-- [ ] T013 [US1] Rewrite `app/login/page.tsx` to strictly match Stitch "响应式极简版" design: centered card on `#f7f9fb` background, Building2 icon + "建筑施工质检情报员" title + "CONSTRUCTION INTELLIGENCE" subtitle, Badge icon + 工号 input, Lock icon + 密码 input, ArrowRight icon + "登录" primary button (`#005ac2`), ShieldCheck icon + security notice, copyright footer; responsive layout (mobile + desktop); form calls `login` Server Action; loading/disabled state on submit; error message display; redirect param support; identity dialog trigger for multi-identity users
-- [ ] T014 [US1] Install shadcn/ui Dialog component: `npx shadcn@latest add dialog`
-- [ ] T015 [US1] Create `components/identity-dialog.tsx`: shared dialog component for identity selection; lists all IdentityOption entries (project name + role); clicking an option calls `selectIdentity` (login flow) or `switchIdentity` (switch flow) Server Action; supports both login and switch modes via props
-- [ ] T016 [US1] Integrate identity dialog into login page: after `login` action returns `needsIdentitySelect: true`, show IdentityDialog with identities list; on selection, call `selectIdentity` action
+- [x] T011 [US1] Add `IdentityOption` and `LoginResult` type exports to `lib/types.ts` if not done in T007
+- [x] T012 [US1] Create login Server Action in `app/login/actions.ts`: `login(formData)` — lookup profile by number → get email via admin API → `signInWithPassword` → query identities → return LoginResult; `selectIdentity(formData)` — write identity cookie → redirect
+- [x] T013 [US1] Rewrite `app/login/page.tsx` to strictly match Stitch "响应式极简版" design: centered card on `#f7f9fb` background, Building2 icon + "建筑施工质检情报员" title + "CONSTRUCTION INTELLIGENCE" subtitle, Badge icon + 工号 input, Lock icon + 密码 input, ArrowRight icon + "登录" primary button (`#005ac2`), ShieldCheck icon + security notice, copyright footer; responsive layout (mobile + desktop); form calls `login` Server Action; loading/disabled state on submit; error message display; redirect param support; identity dialog trigger for multi-identity users
+- [x] T014 [US1] Install shadcn/ui Dialog component: `npx shadcn@latest add dialog`
+- [x] T015 [US1] Create `components/identity-dialog.tsx`: shared dialog component for identity selection; lists all IdentityOption entries (project name + role); clicking an option calls `selectIdentity` (login flow) or `switchIdentity` (switch flow) Server Action; supports both login and switch modes via props
+- [x] T016 [US1] Integrate identity dialog into login page: after `login` action returns `needsIdentitySelect: true`, show IdentityDialog with identities list; on selection, call `selectIdentity` action
 
 **Checkpoint**: 用户可以通过工号密码登录，单身份直接跳转，多身份弹出选择弹框
 
@@ -70,8 +70,8 @@
 
 ### Implementation for User Story 4
 
-- [ ] T017 [US4] Implement auth guard logic in `lib/supabase/proxy.ts` `updateSession()`: after `getClaims()`, check if user is authenticated; if not authenticated and path is `/mobile/*` or `/dashboard/*` → redirect to `/login?redirect=<path>`; if authenticated and path is `/dashboard/*` and `active_role` cookie is not '管理员' → redirect to `/mobile/assistant`; if authenticated and path is `/login` → redirect to `/mobile/assistant` (non-admin) or `/dashboard/overview` (admin); allow `/` and `/login` for unauthenticated users
-- [ ] T018 [US4] Add admin role check in `app/dashboard/layout.tsx` Server Component: verify `active_role` cookie is '管理员' via `getIdentityFromCookie()`, if not redirect to `/mobile/assistant`
+- [x] T017 [US4] Implement auth guard logic in `lib/supabase/proxy.ts` `updateSession()`: after `getClaims()`, check if user is authenticated; if not authenticated and path is `/mobile/*` or `/dashboard/*` → redirect to `/login?redirect=<path>`; if authenticated and path is `/dashboard/*` and `active_role` cookie is not '管理员' → redirect to `/mobile/assistant`; if authenticated and path is `/login` → redirect to `/mobile/assistant` (non-admin) or `/dashboard/overview` (admin); allow `/` and `/login` for unauthenticated users
+- [x] T018 [US4] Add admin role check in `app/dashboard/layout.tsx` Server Component: verify `active_role` cookie is '管理员' via `getIdentityFromCookie()`, if not redirect to `/mobile/assistant`
 
 **Checkpoint**: 鉴权守卫生效，未登录/非管理员访问被正确拦截
 
@@ -85,8 +85,8 @@
 
 ### Implementation for User Story 2
 
-- [ ] T019 [US2] Add `switchIdentity` Server Action in `lib/auth.ts`: update identity cookie → `revalidatePath('/', 'layout')` (no redirect, caller does `router.refresh()`)
-- [ ] T020 [US2] Update `components/identity-dialog.tsx` to support switch mode: when `mode="switch"`, on selection call `switchIdentity` action then `router.refresh()`; when `mode="login"`, on selection call `selectIdentity` action (which redirects)
+- [x] T019 [US2] Add `switchIdentity` Server Action in `lib/auth.ts`: update identity cookie → `revalidatePath('/', 'layout')` (no redirect, caller does `router.refresh()`)
+- [x] T020 [US2] Update `components/identity-dialog.tsx` to support switch mode: when `mode="switch"`, on selection call `switchIdentity` action then `router.refresh()`; when `mode="login"`, on selection call `selectIdentity` action (which redirects)
 
 **Checkpoint**: 身份选择弹框同时支持登录和切换两种场景
 
@@ -100,12 +100,12 @@
 
 ### Implementation for User Story 3
 
-- [ ] T021 [P] [US3] Create `components/user-avatar-chip.tsx`: displays avatar (circle with fallback initial from name) + department + name + current project/role; compact horizontal layout; reads identity from cookie via Server Component props
-- [ ] T022 [US3] Create signout Route Handler in `app/auth/signout/route.ts`: POST handler — call `supabase.auth.signOut()` → clear identity cookies via `clearIdentityCookie()` → `revalidatePath('/', 'layout')` → redirect to `/login`
-- [ ] T023 [US3] Update `components/mobile-side-drawer.tsx`: add UserAvatarChip at bottom of drawer showing current user info + identity; add "切换身份" button (opens IdentityDialog with mode="switch"); add "退出登录" button (form POST to `/auth/signout`)
-- [ ] T024 [US3] Update `components/dashboard-top-bar.tsx`: replace placeholder user area with UserAvatarChip (avatar + name only) + DropdownMenu with "切换身份" (opens IdentityDialog with mode="switch") and "退出登录" (form POST to `/auth/signout`)
-- [ ] T025 [US3] Update `app/mobile/layout.tsx`: pass user profile and identity data as props from Server Component to MobileSideDrawer
-- [ ] T026 [US3] Update `app/dashboard/layout.tsx`: pass user profile and identity data as props from Server Component to DashboardTopBar; verify admin role (already done in T018)
+- [x] T021 [P] [US3] Create `components/user-avatar-chip.tsx`: displays avatar (circle with fallback initial from name) + department + name + current project/role; compact horizontal layout; reads identity from cookie via Server Component props
+- [x] T022 [US3] Create signout Route Handler in `app/auth/signout/route.ts`: POST handler — call `supabase.auth.signOut()` → clear identity cookies via `clearIdentityCookie()` → `revalidatePath('/', 'layout')` → redirect to `/login`
+- [x] T023 [US3] Update `components/mobile-side-drawer.tsx`: add UserAvatarChip at bottom of drawer showing current user info + identity; add "切换身份" button (opens IdentityDialog with mode="switch"); add "退出登录" button (form POST to `/auth/signout`)
+- [x] T024 [US3] Update `components/dashboard-top-bar.tsx`: replace placeholder user area with UserAvatarChip (avatar + name only) + DropdownMenu with "切换身份" (opens IdentityDialog with mode="switch") and "退出登录" (form POST to `/auth/signout`)
+- [x] T025 [US3] Update `app/mobile/layout.tsx`: pass user profile and identity data as props from Server Component to MobileSideDrawer
+- [x] T026 [US3] Update `app/dashboard/layout.tsx`: pass user profile and identity data as props from Server Component to DashboardTopBar; verify admin role (already done in T018)
 
 **Checkpoint**: 移动端和 PC 端都展示用户信息，退出和切换身份功能正常
 
@@ -115,10 +115,10 @@
 
 **Purpose**: 最终验证、格式化、类型检查
 
-- [ ] T027 Run `npm run format` + `npm run lint` + `npx tsc --noEmit` to verify all checks pass
+- [x] T027 Run `npm run format` + `npm run lint` + `npx tsc --noEmit` to verify all checks pass
 - [ ] T028 Verify login flow end-to-end: test zhangqc (single identity), lishigong (single identity), wangguanli (multi-identity); test wrong password; test redirect param; test signout; test identity switch
-- [ ] T029 Update `progress.md` to mark Phase 2 UI tasks as complete
-- [ ] T030 Verify Supabase security advisors have no critical warnings via Supabase MCP `get_advisors`
+- [x] T029 Update `progress.md` to mark Phase 2 UI tasks as complete
+- [x] T030 Verify Supabase security advisors have no critical warnings via Supabase MCP `get_advisors`
 
 ---
 

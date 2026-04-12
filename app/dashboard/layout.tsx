@@ -1,14 +1,52 @@
+import { redirect } from "next/navigation";
 import { DashboardSideNav } from "@/components/dashboard-side-nav";
 import { DashboardTopBar } from "@/components/dashboard-top-bar";
+import { getIdentitiesForUser, getIdentityFromCookie } from "@/lib/auth";
+import { createClient } from "@/lib/supabase/server";
+import type { IdentityOption } from "@/lib/types";
 
-export default function DashboardLayout({
+export default async function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const identity = await getIdentityFromCookie();
+
+  if (!identity || identity.role !== "管理员") {
+    redirect("/mobile/assistant");
+  }
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  let userName = "";
+  let department = "";
+  let identities: IdentityOption[] = [];
+
+  if (user) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("name, department")
+      .eq("id", user.id)
+      .single();
+
+    if (profile) {
+      userName = profile.name;
+      department = profile.department;
+    }
+
+    identities = await getIdentitiesForUser(user.id);
+  }
+
   return (
     <div className="flex min-h-full flex-1 flex-col">
-      <DashboardTopBar />
+      <DashboardTopBar
+        userName={userName}
+        department={department}
+        identities={identities}
+      />
       <div className="flex flex-1">
         <DashboardSideNav />
         <main className="flex-1 bg-zinc-50 p-6">{children}</main>
