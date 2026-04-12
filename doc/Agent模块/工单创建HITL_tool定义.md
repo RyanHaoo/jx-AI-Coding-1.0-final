@@ -6,10 +6,6 @@
 
 ## 1. 设计说明
 
-**为什么使用 HITL？**
-
-工单的指派直接影响施工方的工作安排，由 AI 自动决定责任人存在误判风险。即使 Agent 能从对话上下文推断出责任人信息，当前设计下也不会自动填入，以保持 Agent 和前端职责的清晰分离，避免错误指派。
-
 **流程：**
 ```
 主Agent识别创建工单意图
@@ -26,45 +22,6 @@
 
 ## 2. Tool Call 定义
 
-```json
-{
-  "name": "create_ticket",
-  "description": "创建一条质检工单。需要提供问题描述、位置、严重程度、专业类型等信息。",
-  "parameters": {
-    "type": "object",
-    "properties": {
-      "description": {
-        "type": "string",
-        "description": "问题描述，简要说明发现了什么问题"
-      },
-      "location": {
-        "type": "string",
-        "description": "详细位置，如楼栋-楼层-区域"
-      },
-      "severity": {
-        "type": "string",
-        "enum": ["轻微", "一般", "严重", "紧急"],
-        "description": "严重程度"
-      },
-      "specialty_type": {
-        "type": "string",
-        "enum": ["建筑设计专业", "结构专业", "给排水专业"],
-        "description": "专业类型"
-      },
-      "detail": {
-        "type": "string",
-        "description": "问题详情补充（可选）"
-      },
-      "images": {
-        "type": "array",
-        "items": { "type": "string" },
-        "description": "图片URL列表（可选）"
-      }
-    },
-    "required": ["description", "location", "severity", "specialty_type"]
-  }
-}
-```
 
 ---
 
@@ -79,11 +36,8 @@
 5. 底部显示「确认提交」按钮
 
 **提交后：**
-1. 前端调用 `POST /api/tickets`，传入所有字段（含用户选择的责任人）
-2. 成功后向 Agent 发送结构化 JSON（不渲染气泡）：
-   ```json
-   { "tool_result": "create_ticket", "ticket_id": 42 }
-   ```
+1. 前端调用创建工单 API，传入所有字段
+2. 成功后向 Agent 发送结构化 JSON 创建结果（不渲染气泡）
 3. 上一条消息的工单卡片切换为**只读 + 无按钮**版本
 4. Agent 收到后回复：「工单已创建成功，编号为 #42」
 

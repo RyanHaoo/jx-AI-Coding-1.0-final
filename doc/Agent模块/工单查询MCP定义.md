@@ -20,56 +20,11 @@
 
 ## 2. 工具定义（Tool Schema）
 
-```json
-{
-  "name": "queryTicket",
-  "description": "查询当前项目下的工单信息，支持按状态和关键词筛选",
-  "parameters": {
-    "type": "object",
-    "properties": {
-      "ticket_id": {
-        "type": "integer",
-        "description": "工单ID，精确查询指定工单（可选）"
-      },
-      "status": {
-        "type": "string",
-        "enum": ["待处理", "已完成", "已拒绝"],
-        "description": "按状态筛选（可选）"
-      },
-      "keyword": {
-        "type": "string",
-        "description": "关键词搜索，匹配问题描述（可选）"
-      },
-      "assigned_to_me": {
-        "type": "boolean",
-        "description": "是否只查我负责的工单（默认 false）"
-      }
-    }
-  }
-}
-```
 
 ---
 
 ## 3. 返回格式
 
-```json
-{
-  "tickets": [
-    {
-      "id": 1,
-      "status": "待处理",
-      "severity": "严重",
-      "specialty_type": "结构专业",
-      "description": "3#楼标准层梁底裂缝",
-      "location": "东区一期-3#住宅楼-标准层",
-      "assignee": "张工",
-      "created_at": "2026-03-15T10:30:00"
-    }
-  ],
-  "total": 1
-}
-```
 
 ---
 
