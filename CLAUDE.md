@@ -93,6 +93,14 @@ npx tsc --noEmit   # 仅类型检查，不输出
 
 开发阶段进度跟踪见 `progress.md`。
 
+## Git 卡控
+
+使用 Husky pre-commit hook（`.husky/pre-commit`），每次 `git commit` 前自动运行：
+1. `npx tsc --noEmit` — TypeScript 类型检查
+2. `npx biome check` — Biome lint 检查
+
+任一检查失败，提交会被阻止。不要使用 `--no-verify` 跳过卡控。
+
 ## 约定
 
 - 路径别名：`@/*` 映射到项目根目录
