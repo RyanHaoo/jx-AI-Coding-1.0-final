@@ -29,18 +29,26 @@ app/
 │   └── page.tsx                  # 登录页（工号/密码 + redirect 校验）
 ├── mobile/
 │   ├── layout.tsx                # 移动端共享布局（顶栏 + 侧边抽屉）
-│   ├── assistant/page.tsx        # 智能助手（占位页）
+│   ├── assistant/page.tsx        # 智能助手（RSC 预取历史 + AgentChat）
 │   └── tickets/
 │       ├── page.tsx              # 工单列表（占位页）
 │       └── [id]/page.tsx         # 工单详情（占位页）
-└── dashboard/
-    ├── layout.tsx                # PC 端共享布局（顶栏 + 左侧导航）
-    ├── overview/page.tsx         # 数据大盘（占位页）
-    ├── tickets/page.tsx          # 工单中心（占位页）
-    └── knowledge/page.tsx        # 知识运营（占位页）
+├── dashboard/
+│   ├── layout.tsx                # PC 端共享布局（顶栏 + 左侧导航）
+│   ├── overview/page.tsx         # 数据大盘（占位页）
+│   ├── tickets/page.tsx          # 工单中心（占位页）
+│   └── knowledge/page.tsx        # 知识运营（占位页）
+└── api/
+    └── agent/route.ts            # Agent SSE 流式端点（createAgent + PostgresSaver）
 
 components/
-├── ui/                           # shadcn/ui 组件（button, input, label, sheet）
+├── ui/                           # shadcn/ui 组件
+├── ai-elements/                  # AI 对话元素（conversation/message/prompt-input）
+├── agent/                        # Agent 聊天 UI
+│   ├── agent-chat.tsx            # 主聊天界面（消息流 + tool_call 路由）
+│   ├── use-agent-chat.ts         # useStream 封装
+│   ├── tool-call-card.tsx        # 工具调用展示卡
+│   └── create-ticket-card.tsx    # HITL 建单占位卡
 ├── mobile-top-bar.tsx            # 移动端顶栏（汉堡菜单 + 标题）
 ├── mobile-side-drawer.tsx        # 移动端侧边目录（Sheet 从左侧滑入）
 ├── dashboard-top-bar.tsx         # PC 端顶栏（标题 + 用户区域占位）
@@ -48,7 +56,14 @@ components/
 
 lib/
 ├── utils.ts                      # cn() 工具函数
-└── types.ts                      # 全局类型（6 枚举 + 5 实体接口）
+├── types.ts                      # 全局类型（6 枚举 + 5 实体接口）
+├── auth.ts                       # 身份 cookie 读写 + 身份列表查询
+└── agent/
+    ├── index.ts                  # createAgent 单例 + 历史修剪工具
+    ├── model.ts                  # OpenRouter ChatOpenAI 配置
+    ├── checkpoints.ts            # PostgresSaver 单例 + setup
+    ├── prompts.ts                # 身份驱动 system prompt
+    └── tools.ts                  # 三个 mock 工具定义
 ```
 
 ## 架构
