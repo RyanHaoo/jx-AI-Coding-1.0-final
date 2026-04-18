@@ -37,7 +37,11 @@ export function TicketActions({ ticket, userIdentity }: TicketActionsProps) {
       });
       if (res.ok) {
         router.refresh();
+      } else {
+        alert("操作失败，请稍后重试");
       }
+    } catch {
+      alert("操作失败，请稍后重试");
     } finally {
       setLoading(null);
     }

@@ -183,6 +183,8 @@ lib/
 - Stitch 设计系统 CSS 变量 (--stitch-*)，lucide-react 图标导航 (003-stitch-layout-refactor)
 - TypeScript 5.x + Next.js 16.2.3 (App Router) + React 19.2 + @supabase/ssr + @supabase/supabase-js + shadcn/ui 4.2 + Radix UI + Tailwind CSS 4 + lucide-react (004-ticket-component-actions)
 - Supabase Postgres（已有 profiles/projects/user_roles 三张表，需新增 tickets 表） (004-ticket-component-actions)
+- TypeScript 5.x + Next.js 16.2.3 (App Router), React 19.2, @supabase/ssr, @supabase/supabase-js, shadcn/ui 4.2（Badge/Button/Sheet/Tabs/Input/Select）, lucide-react 1.8, Tailwind CSS 4 (005-mobile-ticket-detail)
+- Supabase Postgres（已存在 `tickets`/`profiles`/`projects`/`user_roles` 表；本阶段不新增表结构） (005-mobile-ticket-detail)
 
 ## Recent Changes
 - 001-project-init: Added TypeScript 5.x, Next.js 16.2.3 (App Router) + React 19.2, shadcn/ui 4.2, lucide-react 1.8, Tailwind CSS 4, Biome 2.2

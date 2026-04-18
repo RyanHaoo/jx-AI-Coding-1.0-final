@@ -103,7 +103,11 @@ export function TicketDetail({ ticket, userIdentity }: TicketDetailProps) {
       if (res.ok) {
         setMode("view");
         router.refresh();
+      } else {
+        alert("保存失败，请稍后重试");
       }
+    } catch {
+      alert("保存失败，请稍后重试");
     } finally {
       setSaving(false);
     }
