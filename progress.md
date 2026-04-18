@@ -3,10 +3,10 @@
 > 策略：模块优先，假数据先行。每个模块先用 mock 数据完成界面，确认交互无误后再接真实数据。
 
 ## 阶段 1：项目初始化（已完成）
-- 创建 Next.js 项目，配置 TypeScript、Tailwind CSS、shadcn/ui、lucide-react
-- 定义全局类型（用户、项目、工单、角色等枚举与接口）
-- 搭建基础路由结构（`/`、`/login`、`/mobile/*`、`/dashboard/*`）
-- 首页（`/`）— 移动端入口 + PC 后台入口两个大按钮
+- [x] 创建 Next.js 项目，配置 TypeScript、Tailwind CSS、shadcn/ui、lucide-react
+- [x] 定义全局类型（用户、项目、工单、角色等枚举与接口）
+- [x] 搭建基础路由结构（`/`、`/login`、`/mobile/*`、`/dashboard/*`）
+- [x] 首页（`/`）— 移动端入口 + PC 后台入口两个大按钮
 
 ## 阶段 2：登录与身份系统
 - [x] 配置 Supabase（Auth + Database）
@@ -29,14 +29,17 @@
 - 工单列表页（`/mobile/tickets`）— Tab 筛选、责任人筛选、排序、紧急置顶
 - 工单详情页（`/mobile/tickets/:id`）— 集成工单详情组件、操作按钮逻辑
 
-## 阶段 5：Agent 对话模块
-- Agent 对话页 UI（`/mobile/assistant`）— 消息流、输入区、加载态
-- 搭建主 Agent 后端（LangChain createAgent、System Prompt）
-- 实现工单查询 MCP（stdio，只读查询当前项目工单）
-- 实现 create_ticket HITL tool_call（Agent → 前端工单创建卡片 → 用户确认 → API 创建）
-- 前端对接 SSE 流式响应（LangChain useStream）
-- 对接知识获取子 Agent（扣子平台外部 API）
-- 接入 LangSmith 监控
+## 阶段 5：Agent 对话模块（Mock 已完成，真实工具待接入）
+- [x] Agent 对话页 UI（`/mobile/assistant`）— 消息流、输入区、加载态、工具调用卡、HITL 占位卡
+- [x] 搭建主 Agent 后端（LangChain `createAgent`、身份驱动 System Prompt、意图路由与建单权限）
+- [x] 前端对接 SSE 流式响应（`FetchStreamTransport` + `useStream`）
+- [x] PostgresSaver 对话持久化（Supabase Transaction Pooler，thread_id = user.id，6 轮裁剪）
+- [x] 三个 mock 工具占位：`queryTicket` / `knowledge_query` / `create_ticket`（均返回 `mock success`）
+- [x] HITL 前端拦截：`create_ticket` 调用渲染带提交按钮的占位卡（暂无提交逻辑）
+- [ ] 工单查询真实实现（接入 tickets 数据表，取代 `queryTicket` mock）
+- [ ] `create_ticket` HITL 真实实现（用户确认 → 后端 API 创建 → 写入 tickets/ticket_logs）
+- [ ] 对接知识获取子 Agent（扣子平台外部 API，取代 `knowledge_query` mock）
+- [ ] 接入 LangSmith 监控
 
 ## 阶段 6：PC 端管理模块（Mock 数据 → 真实数据）
 - PC 端通用布局（顶栏 + 左侧菜单导航）

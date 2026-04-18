@@ -29,18 +29,26 @@ app/
 │   └── page.tsx                  # 登录页（工号/密码 + redirect 校验）
 ├── mobile/
 │   ├── layout.tsx                # 移动端共享布局（顶栏 + 侧边抽屉）
-│   ├── assistant/page.tsx        # 智能助手（占位页）
+│   ├── assistant/page.tsx        # 智能助手（RSC 预取历史 + AgentChat）
 │   └── tickets/
 │       ├── page.tsx              # 工单列表（占位页）
 │       └── [id]/page.tsx         # 工单详情（占位页）
-└── dashboard/
-    ├── layout.tsx                # PC 端共享布局（顶栏 + 左侧导航）
-    ├── overview/page.tsx         # 数据大盘（占位页）
-    ├── tickets/page.tsx          # 工单中心（占位页）
-    └── knowledge/page.tsx        # 知识运营（占位页）
+├── dashboard/
+│   ├── layout.tsx                # PC 端共享布局（顶栏 + 左侧导航）
+│   ├── overview/page.tsx         # 数据大盘（占位页）
+│   ├── tickets/page.tsx          # 工单中心（占位页）
+│   └── knowledge/page.tsx        # 知识运营（占位页）
+└── api/
+    └── agent/route.ts            # Agent SSE 流式端点（createAgent + PostgresSaver）
 
 components/
-├── ui/                           # shadcn/ui 组件（button, input, label, sheet）
+├── ui/                           # shadcn/ui 组件
+├── ai-elements/                  # AI 对话元素（conversation/message/prompt-input）
+├── agent/                        # Agent 聊天 UI
+│   ├── agent-chat.tsx            # 主聊天界面（消息流 + tool_call 路由）
+│   ├── use-agent-chat.ts         # useStream 封装
+│   ├── tool-call-card.tsx        # 工具调用展示卡
+│   └── create-ticket-card.tsx    # HITL 建单占位卡
 ├── mobile-top-bar.tsx            # 移动端顶栏（汉堡菜单 + 标题）
 ├── mobile-side-drawer.tsx        # 移动端侧边目录（Sheet 从左侧滑入）
 ├── dashboard-top-bar.tsx         # PC 端顶栏（标题 + 用户区域占位）
@@ -48,7 +56,14 @@ components/
 
 lib/
 ├── utils.ts                      # cn() 工具函数
-└── types.ts                      # 全局类型（6 枚举 + 5 实体接口）
+├── types.ts                      # 全局类型（6 枚举 + 5 实体接口）
+├── auth.ts                       # 身份 cookie 读写 + 身份列表查询
+└── agent/
+    ├── index.ts                  # createAgent 单例 + 历史修剪工具
+    ├── model.ts                  # OpenRouter ChatOpenAI 配置
+    ├── checkpoints.ts            # PostgresSaver 单例 + setup
+    ├── prompts.ts                # 身份驱动 system prompt
+    └── tools.ts                  # 三个 mock 工具定义
 ```
 
 ## 架构
@@ -160,6 +175,17 @@ lib/
 - TypeScript 5.x + Next.js 16.2.3 (App Router), React 19.2, @supabase/supabase-js, @supabase/ssr, shadcn/ui 4.2, lucide-react 1.8, Tailwind CSS 4 (002-auth-identity-system)
 - Supabase Postgres (已有 profiles/projects/user_roles 表), httpOnly cookie (身份选择状态) (002-auth-identity-system)
 - Stitch 设计系统 CSS 变量 (--stitch-*)，lucide-react 图标导航 (003-stitch-layout-refactor)
+- langchain / @langchain/core / @langchain/langgraph / @langchain/openai / @langchain/langgraph-checkpoint-postgres / @langchain/langgraph-sdk / @langchain/react / zod (004-agent-mock-integration)
+- Supabase Transaction Pooler (DATABASE_URL) 作为 LangGraph PostgresSaver checkpoint 存储 (004-agent-mock-integration)
+- OpenRouter（OPENROUTER_BASE_URL / OPENROUTER_API_KEY / AGENT_MODEL_ID）承载 Agent 主模型 (004-agent-mock-integration)
 
 ## Recent Changes
+- 004-agent-mock-integration: 智能助手对话 Agent Mock 实现（`/mobile/assistant`）
+  - 技术栈：`createAgent` + Next.js API 路由 (`app/api/agent/route.ts`) SSE + `FetchStreamTransport` + `useStream`
+  - 持久化：`PostgresSaver` 使用 Supabase Transaction Pooler；`thread_id = supabase.auth.getUser().id`
+  - 工具（全部 mock，仅返回 "mock success"）：`queryTicket` / `knowledge_query` / `create_ticket`
+  - HITL：前端拦截 `create_ticket` tool_call，渲染占位卡片（含无逻辑的「提交工单」按钮）
+  - System prompt：基于身份（姓名/部门/角色/项目）+ 意图路由 + 超范围拒答 + 角色建单权限
+  - 历史：RSC 预取最近 6 轮消息；每次请求前用 `RemoveMessage` 将 checkpoint 修剪到最近 6 轮
+  - 新增环境变量：`OPENROUTER_BASE_URL` / `OPENROUTER_API_KEY` / `AGENT_MODEL_ID` / `DATABASE_URL`
 - 001-project-init: Added TypeScript 5.x, Next.js 16.2.3 (App Router) + React 19.2, shadcn/ui 4.2, lucide-react 1.8, Tailwind CSS 4, Biome 2.2
