@@ -1,16 +1,31 @@
-import { use } from "react";
+import { notFound } from "next/navigation";
+import { TicketDetail } from "@/components/ticket-detail";
+import { getIdentityFromCookie } from "@/lib/auth";
+import { createClient } from "@/lib/supabase/server";
+import { getTicketById } from "@/lib/tickets";
 
-export default function TicketDetailPage({
+export default async function TicketDetailPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const { id } = use(params);
+  const { id } = await params;
+  const ticketId = Number(id);
 
-  return (
-    <div>
-      <h2 className="text-lg font-medium">工单详情</h2>
-      <p className="mt-2 text-sm text-muted-foreground">工单 ID: {id}</p>
-    </div>
-  );
+  const ticket = await getTicketById(ticketId);
+  if (!ticket) notFound();
+
+  // Get current user ID + role for permission checks
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  const identity = await getIdentityFromCookie();
+
+  const userIdentity = user
+    ? { userId: user.id, role: identity?.role ?? ("质检员" as const) }
+    : null;
+
+  return <TicketDetail ticket={ticket} userIdentity={userIdentity} />;
 }
