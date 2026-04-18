@@ -202,8 +202,16 @@ lib/
 - OpenRouter（OPENROUTER_BASE_URL / OPENROUTER_API_KEY / AGENT_MODEL_ID）承载 Agent 主模型 (004-agent-mock-integration)
 - TypeScript 5.x + Next.js 16.2.3 (App Router), React 19.2, @supabase/ssr, @supabase/supabase-js, shadcn/ui 4.2（Badge/Button/Sheet/Tabs/Input/Select）, lucide-react 1.8, Tailwind CSS 4 (005-mobile-ticket-detail)
 - Supabase Postgres（已存在 `tickets`/`profiles`/`projects`/`user_roles` 表；本阶段不新增表结构） (005-mobile-ticket-detail)
+- TypeScript 5.x（Next.js 16.2.3 项目）+ Node.js 运行时脚本（`.mjs`） + `langchain` / `@langchain/core` / `@langchain/mcp-adapters` / `@modelcontextprotocol/sdk` / `zod` / `@supabase/supabase-js` / `@supabase/ssr` (006-agent-ticket-query-mcp)
+- Supabase Postgres（`tickets` + 关联 `profiles`/`projects`，由 RLS 限制可见范围） (006-agent-ticket-query-mcp)
 
 ## Recent Changes
+- 006-agent-ticket-query-mcp: Agent 工单查询 MCP 真实接入（替换 `queryTicket` mock）
+  - 新增本地 stdio MCP server：`mcp/ticket-query-server.mjs`，仅暴露 `query_ticket`
+  - Agent 侧新增 `lib/agent/mcp-client.ts`，单例管理 `MultiServerMCPClient` 与 `query_ticket` tool 获取
+  - `lib/agent/tools.ts`：`queryTicket` 改为结构化筛选参数并注入 `supabase_access_token` 调用 MCP
+  - `app/api/agent/route.ts`：新增 `supabase.auth.getSession()`，通过 `configurable.supabase_access_token` 透传 token
+  - 查询结果收敛为摘要字段，并支持 `limit` 上限与 `truncated` 标记；未登录返回受控错误
 - 004-agent-mock-integration: 智能助手对话 Agent Mock 实现（`/mobile/assistant`）
   - 技术栈：`createAgent` + Next.js API 路由 (`app/api/agent/route.ts`) SSE + `FetchStreamTransport` + `useStream`
   - 持久化：`PostgresSaver` 使用 Supabase Transaction Pooler；`thread_id = supabase.auth.getUser().id`

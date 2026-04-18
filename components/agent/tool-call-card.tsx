@@ -17,6 +17,8 @@ const TOOL_LABELS: Record<string, string> = {
 
 export function ToolCallCard({ name, status, result }: ToolCallCardProps) {
   const label = TOOL_LABELS[name] ?? name;
+  const shouldShowResult =
+    status === "done" && result && name !== "queryTicket";
   return (
     <div className="bg-muted/40 my-2 rounded-lg border p-3 text-sm">
       <div className="flex items-center gap-2">
@@ -30,7 +32,7 @@ export function ToolCallCard({ name, status, result }: ToolCallCardProps) {
           <span className="text-muted-foreground text-xs">已完成</span>
         )}
       </div>
-      {status === "done" && result ? (
+      {shouldShowResult ? (
         <pre className="text-muted-foreground mt-2 text-xs whitespace-pre-wrap">
           {result}
         </pre>

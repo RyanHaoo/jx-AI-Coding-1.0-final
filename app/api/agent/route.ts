@@ -5,7 +5,7 @@ import {
 import { Command } from "@langchain/langgraph";
 import type { NextRequest } from "next/server";
 
-import { agent, pruneThreadIfExceeded } from "@/lib/agent";
+import { pruneThreadIfExceeded, streamAgent } from "@/lib/agent";
 import { ensureCheckpointerReady } from "@/lib/agent/checkpoints";
 import {
   buildSystemPrompt,
@@ -31,8 +31,17 @@ export async function POST(req: NextRequest) {
     data: { user },
     error: authError,
   } = await supabase.auth.getUser();
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
   if (authError || !user) {
     return new Response(JSON.stringify({ error: "unauthenticated" }), {
+      status: 401,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+  if (!session?.access_token) {
+    return new Response(JSON.stringify({ error: "session_missing" }), {
       status: 401,
       headers: { "Content-Type": "application/json" },
     });
@@ -98,12 +107,23 @@ export async function POST(req: NextRequest) {
           ],
         };
 
-  const stream = await agent.stream(streamInput, {
-    encoding: "text/event-stream",
-    streamMode: ["messages", "values", "updates"],
-    signal: req.signal,
-    configurable: { thread_id: threadId },
-  });
+  let stream: ReadableStream;
+  try {
+    stream = await streamAgent(streamInput, {
+      encoding: "text/event-stream",
+      streamMode: ["messages", "values", "updates"],
+      signal: req.signal,
+      configurable: {
+        thread_id: threadId,
+        supabase_access_token: session.access_token,
+      },
+    });
+  } catch {
+    return new Response(JSON.stringify({ error: "agent_stream_failed" }), {
+      status: 500,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
 
   return new Response(stream, {
     headers: {

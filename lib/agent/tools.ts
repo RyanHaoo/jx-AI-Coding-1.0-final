@@ -1,16 +1,118 @@
+import type { RunnableConfig } from "@langchain/core/runnables";
 import { tool } from "langchain";
 import { z } from "zod";
+import { getQueryTicketMcpTool } from "./mcp-client";
 
 const MOCK_SUCCESS = "mock success";
 
-export const queryTicket = tool(async () => MOCK_SUCCESS, {
-  name: "queryTicket",
-  description:
-    "查询当前项目下的工单列表。当用户想看/查询/找工单时调用。参数 filter 为可选过滤条件（如状态、严重程度、责任人等的自然语言描述）。",
-  schema: z.object({
-    filter: z.string().optional().describe("可选的过滤条件，自然语言"),
-  }),
-});
+type QueryTicketItem = {
+  id: number;
+  status: string;
+  severity: string;
+  description: string;
+  location: string;
+  created_at: string;
+  assignee_name: string;
+  project_name: string;
+};
+
+type QueryTicketPayload = {
+  items?: QueryTicketItem[];
+  total?: number;
+  truncated?: boolean;
+  error?: { code?: string; message?: string };
+};
+
+function mapMcpErrorToReply(raw: string): string {
+  try {
+    const parsed = JSON.parse(raw) as QueryTicketPayload;
+    const code = parsed.error?.code;
+    if (code === "UNAUTHENTICATED") {
+      return "请重新登录后再试";
+    }
+    if (code === "INVALID_ARGUMENT") {
+      return "查询参数无效，请换个条件试试";
+    }
+    if (code === "QUERY_FAILED") {
+      return "查询失败，请稍后重试";
+    }
+  } catch {
+    return raw;
+  }
+  return raw;
+}
+
+function formatQueryTicketResult(raw: string): string {
+  let parsed: QueryTicketPayload;
+  try {
+    parsed = JSON.parse(raw) as QueryTicketPayload;
+  } catch {
+    return raw;
+  }
+
+  if (parsed.error?.code) {
+    return mapMcpErrorToReply(raw);
+  }
+
+  const items = Array.isArray(parsed.items) ? parsed.items : [];
+  if (items.length === 0) {
+    return "当前没有符合条件的工单。";
+  }
+
+  const lines = items.map((item) => {
+    const link = `/mobile/tickets/${item.id}`;
+    return `- [工单 #${item.id}](${link})｜状态：${item.status}｜严重度：${item.severity}｜位置：${item.location}｜问题：${item.description}`;
+  });
+
+  const total = typeof parsed.total === "number" ? parsed.total : items.length;
+  const header = `已查询到 ${total} 条工单，当前展示 ${items.length} 条：`;
+  const truncatedNote = parsed.truncated
+    ? "\n结果已截断，如需更精确结果请继续细化筛选条件。"
+    : "";
+
+  return `${header}\n${lines.join("\n")}${truncatedNote}`;
+}
+
+function readAccessToken(config?: RunnableConfig): string {
+  const configurable = (config?.configurable ?? {}) as {
+    supabase_access_token?: string;
+  };
+  return configurable.supabase_access_token ?? "";
+}
+
+export const queryTicket = tool(
+  async (input, config?: RunnableConfig) => {
+    const mcpTool = await getQueryTicketMcpTool();
+    const accessToken = readAccessToken(config);
+    const response = await mcpTool.invoke({
+      ...input,
+      supabase_access_token: accessToken,
+    });
+    const text =
+      typeof response === "string" ? response : JSON.stringify(response);
+    return formatQueryTicketResult(text);
+  },
+  {
+    name: "queryTicket",
+    description:
+      "查询当前项目下的工单列表。当用户想看/查询/找工单时调用。支持状态、严重程度、专业类型、关键字和数量限制。",
+    schema: z.object({
+      status: z.enum(["待处理", "已完成", "已拒绝"]).optional(),
+      severity: z.enum(["轻微", "一般", "严重", "紧急"]).optional(),
+      specialty_type: z
+        .enum(["建筑设计专业", "结构专业", "给排水专业"])
+        .optional(),
+      keyword: z.string().optional().describe("可选关键字，匹配描述或位置"),
+      limit: z
+        .number()
+        .int()
+        .min(1)
+        .max(50)
+        .optional()
+        .describe("可选返回条数，默认 10，上限 50"),
+    }),
+  },
+);
 
 export const knowledgeQuery = tool(async () => MOCK_SUCCESS, {
   name: "knowledge_query",
@@ -38,5 +140,3 @@ export const createTicket = tool(async () => MOCK_SUCCESS, {
       .describe("专业类型"),
   }),
 });
-
-export const allTools = [queryTicket, knowledgeQuery, createTicket];
