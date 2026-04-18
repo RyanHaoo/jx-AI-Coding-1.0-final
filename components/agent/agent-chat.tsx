@@ -29,7 +29,10 @@ import {
 } from "@/components/ai-elements/prompt-input";
 import { InputGroupAddon } from "@/components/ui/input-group";
 
-import { CreateTicketCard } from "./create-ticket-card";
+import {
+  CreateTicketCard,
+  type CreateTicketSubmitResult,
+} from "./create-ticket-card";
 import { ToolCallCard } from "./tool-call-card";
 import { useAgentChat } from "./use-agent-chat";
 
@@ -56,6 +59,8 @@ type ChatMessage = {
 
 type Role = "user" | "assistant" | "system" | "tool" | "other";
 
+const HITL_RESULT_PREFIX = "[HITL_RESULT]";
+
 function getRole(msg: ChatMessage): Role {
   const t = (msg.type ?? msg.role ?? "").toLowerCase();
   if (t === "human" || t === "user") return "user";
@@ -80,6 +85,38 @@ function getText(content: unknown): string {
       .join("");
   }
   return "";
+}
+
+function parseHitlResult(text: string): CreateTicketSubmitResult | null {
+  if (!text.startsWith(HITL_RESULT_PREFIX)) return null;
+  const jsonPart = text.slice(HITL_RESULT_PREFIX.length).trim();
+  try {
+    const data = JSON.parse(jsonPart) as {
+      status?: string;
+      ticket_id?: number;
+      tool_call_id?: string;
+      message?: string;
+    };
+    if (data.status !== "success" && data.status !== "error") return null;
+    return {
+      status: data.status,
+      ticket_id: data.ticket_id,
+      message: data.message,
+    };
+  } catch {
+    return null;
+  }
+}
+
+function extractToolCallId(text: string): string | null {
+  if (!text.startsWith(HITL_RESULT_PREFIX)) return null;
+  const jsonPart = text.slice(HITL_RESULT_PREFIX.length).trim();
+  try {
+    const data = JSON.parse(jsonPart) as { tool_call_id?: string };
+    return data.tool_call_id ?? null;
+  } catch {
+    return null;
+  }
 }
 
 export function AgentChat({ userId, initialMessages }: AgentChatProps) {
@@ -125,9 +162,53 @@ export function AgentChat({ userId, initialMessages }: AgentChatProps) {
     return map;
   }, [sourceMessages]);
 
+  // Build a map of tool_call_id -> HITL submit result (parsed from user HITL_RESULT messages)
+  const hitlResultByToolCallId = useMemo(() => {
+    const map = new Map<string, CreateTicketSubmitResult>();
+    for (const m of sourceMessages) {
+      if (getRole(m) !== "user") continue;
+      const text = getText(m.content);
+      if (!text.startsWith(HITL_RESULT_PREFIX)) continue;
+      const toolCallId = extractToolCallId(text);
+      const parsed = parseHitlResult(text);
+      if (toolCallId && parsed) {
+        map.set(toolCallId, parsed);
+      }
+    }
+    return map;
+  }, [sourceMessages]);
+
+  const handleTicketSubmitted = useCallback(
+    (toolCallId: string | undefined, result: CreateTicketSubmitResult) => {
+      if (isLoading) return;
+      const payload = JSON.stringify({
+        ...result,
+        tool_call_id: toolCallId,
+      });
+      const human = new HumanMessage({
+        content: `${HITL_RESULT_PREFIX} ${payload}`,
+      });
+      const prev = (messages ?? []) as unknown[];
+      submit(
+        { messages: [human] },
+        {
+          optimisticValues: { messages: [...prev, human] as never },
+          config: { configurable: { thread_id: userId } },
+        },
+      );
+    },
+    [submit, messages, isLoading, userId],
+  );
+
   const items = sourceMessages.filter((m) => {
     const role = getRole(m);
-    return role === "user" || role === "assistant";
+    if (role === "user") {
+      const text = getText(m.content);
+      // 隐藏 HITL 回传消息，不作为普通用户气泡展示
+      if (text.startsWith(HITL_RESULT_PREFIX)) return false;
+      return true;
+    }
+    return role === "assistant";
   });
 
   return (
@@ -175,9 +256,13 @@ export function AgentChat({ userId, initialMessages }: AgentChatProps) {
                           ? "done"
                           : "running";
                         if (tc.name === "create_ticket") {
+                          const hitlResolved = tc.id
+                            ? hitlResultByToolCallId.get(tc.id)
+                            : undefined;
                           return (
                             <CreateTicketCard
                               key={tcKey}
+                              toolCallId={tc.id}
                               args={
                                 tc.args as {
                                   description?: string;
@@ -185,6 +270,10 @@ export function AgentChat({ userId, initialMessages }: AgentChatProps) {
                                   severity?: string;
                                   specialtyType?: string;
                                 }
+                              }
+                              resolved={hitlResolved ?? null}
+                              onSubmitted={(r) =>
+                                handleTicketSubmitted(tc.id, r)
                               }
                             />
                           );
