@@ -21,6 +21,7 @@ export async function GET(request: Request) {
   }
 
   const tickets = await getTicketsByProject(projectId);
+
   return NextResponse.json({ tickets });
 }
 

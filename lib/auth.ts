@@ -30,6 +30,7 @@ export async function writeIdentityCookie(
   role: Role,
 ) {
   const cookieStore = await cookies();
+
   cookieStore.set("active_project_id", String(projectId), COOKIE_OPTIONS);
   cookieStore.set("active_project_name", projectName, COOKIE_OPTIONS);
   cookieStore.set("active_role", role, COOKIE_OPTIONS);
@@ -54,8 +55,11 @@ export async function getIdentitiesForUser(
   if (error || !data) return [];
 
   return data.map((row) => ({
+    // PostgREST relation can be object or array depending on query shape.
     projectId: row.project_id,
-    projectName: (row.projects as Array<{ name: string }>)[0]?.name ?? "",
+    projectName: Array.isArray(row.projects)
+      ? (row.projects[0]?.name ?? "")
+      : ((row.projects as { name?: string } | null)?.name ?? ""),
     role: row.role as Role,
   }));
 }
