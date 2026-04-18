@@ -5,7 +5,9 @@ import {
   type FormEvent,
   Fragment,
   useCallback,
+  useLayoutEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 
@@ -32,13 +34,17 @@ import {
   normalizeCreateTicketDraftArgs,
   parseToolCallArgsRecord,
 } from "@/lib/agent/create-ticket-draft-args";
-
+import { AgentMarkdownAnchor } from "./agent-markdown-anchor";
 import {
   CreateTicketCard,
   type CreateTicketSubmitResult,
 } from "./create-ticket-card";
 import { ToolCallCard } from "./tool-call-card";
 import { useAgentChat } from "./use-agent-chat";
+
+const agentMessageMarkdownComponents = {
+  a: AgentMarkdownAnchor,
+};
 
 interface AgentChatProps {
   userId: string;
@@ -66,6 +72,8 @@ type ChatMessage = {
 type Role = "user" | "assistant" | "system" | "tool" | "other";
 
 const HITL_RESULT_PREFIX = "[HITL_RESULT]";
+/** matches `max-h-48` (12rem); keep in sync when changing PromptInputTextarea max height */
+const CHAT_INPUT_MAX_HEIGHT_PX = 192;
 
 function getRole(msg: ChatMessage): Role {
   const t = (msg.type ?? msg.role ?? "").toLowerCase();
@@ -134,6 +142,22 @@ function hitlUserBubbleLabel(text: string): string | null {
   return hint ? `提交失败：${hint}` : "提交失败";
 }
 
+function AgentTypingIndicator() {
+  return (
+    <div aria-live="polite" className="flex justify-start pt-2">
+      <span className="sr-only">助手正在回复</span>
+      <div
+        aria-busy="true"
+        className="flex items-center gap-1 rounded-2xl bg-muted px-3 py-2"
+      >
+        <span className="inline-block size-1.5 animate-bounce rounded-full bg-muted-foreground [animation-delay:-0.3s]" />
+        <span className="inline-block size-1.5 animate-bounce rounded-full bg-muted-foreground [animation-delay:-0.15s]" />
+        <span className="inline-block size-1.5 animate-bounce rounded-full bg-muted-foreground" />
+      </div>
+    </div>
+  );
+}
+
 export function AgentChat({
   userId,
   initialMessages,
@@ -144,6 +168,34 @@ export function AgentChat({
     initialMessages,
   });
   const [input, setInput] = useState("");
+  const chatTextareaRef = useRef<HTMLTextAreaElement>(null);
+  const lastNonEmptyMessagesRef = useRef<ChatMessage[]>([]);
+
+  const syncChatInputHeight = useCallback(() => {
+    const el = chatTextareaRef.current;
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = `${Math.min(el.scrollHeight, CHAT_INPUT_MAX_HEIGHT_PX)}px`;
+  }, []);
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: textarea 需在 input 变更（含清空）后重算高度
+  useLayoutEffect(() => {
+    syncChatInputHeight();
+  }, [input, syncChatInputHeight]);
+
+  const streamList = messages ?? [];
+  if (streamList.length > 0) {
+    lastNonEmptyMessagesRef.current = streamList as ChatMessage[];
+  }
+
+  const sourceMessages = useMemo((): ChatMessage[] => {
+    const list = messages ?? [];
+    if (list.length > 0) return list as ChatMessage[];
+    if (lastNonEmptyMessagesRef.current.length > 0) {
+      return lastNonEmptyMessagesRef.current;
+    }
+    return (initialMessages ?? []) as ChatMessage[];
+  }, [messages, initialMessages]);
 
   const handleSubmit = useCallback(
     (message: PromptInputMessage, event: FormEvent<HTMLFormElement>) => {
@@ -152,7 +204,7 @@ export function AgentChat({
       if (!text || isLoading) return;
 
       const human = new HumanMessage({ content: text });
-      const prev = (messages ?? []) as unknown[];
+      const prev = sourceMessages as unknown[];
 
       submit(
         { messages: [human] },
@@ -163,13 +215,8 @@ export function AgentChat({
       );
       setInput("");
     },
-    [submit, messages, isLoading, userId],
+    [submit, sourceMessages, isLoading, userId],
   );
-
-  const sourceMessages =
-    messages && messages.length > 0
-      ? ((messages ?? []) as ChatMessage[])
-      : ((initialMessages ?? []) as ChatMessage[]);
 
   const toolResultById = useMemo(() => {
     const map = new Map<string, ChatMessage>();
@@ -206,7 +253,7 @@ export function AgentChat({
       const human = new HumanMessage({
         content: `${HITL_RESULT_PREFIX} ${payload}`,
       });
-      const prev = (messages ?? []) as unknown[];
+      const prev = sourceMessages as unknown[];
       submit(
         { messages: [human] },
         {
@@ -215,7 +262,7 @@ export function AgentChat({
         },
       );
     },
-    [submit, messages, userId],
+    [submit, sourceMessages, userId],
   );
 
   const items = sourceMessages.filter((m) => {
@@ -322,7 +369,11 @@ export function AgentChat({
                   {text ? (
                     <Message from="assistant">
                       <MessageContent>
-                        <MessageResponse>{text}</MessageResponse>
+                        <MessageResponse
+                          components={agentMessageMarkdownComponents}
+                        >
+                          {text}
+                        </MessageResponse>
                       </MessageContent>
                     </Message>
                   ) : null}
@@ -330,6 +381,8 @@ export function AgentChat({
               );
             })
           )}
+
+          {isLoading ? <AgentTypingIndicator /> : null}
 
           {error ? (
             <p className="text-destructive text-sm">
@@ -340,16 +393,21 @@ export function AgentChat({
         <ConversationScrollButton />
       </Conversation>
 
-      <div className="border-t p-3">
+      <div className="relative z-10 shrink-0 border-t border-border bg-[var(--stitch-surface-container-lowest)] px-3 pb-3 pt-4">
         <PromptInput onSubmit={handleSubmit}>
           <PromptInputBody>
             <PromptInputTextarea
+              ref={chatTextareaRef}
+              className="min-h-11 max-h-48 overflow-y-auto text-base ![field-sizing:fixed] md:text-sm"
               value={input}
-              onChange={(e) => setInput(e.target.value)}
+              onChange={(e) => {
+                setInput(e.target.value);
+              }}
+              onInput={syncChatInputHeight}
               placeholder="输入消息，Enter 发送…"
               disabled={isLoading}
             />
-            <InputGroupAddon align="inline-end">
+            <InputGroupAddon align="inline-end" className="self-end pb-px">
               <PromptInputSubmit
                 status={isLoading ? "streaming" : undefined}
                 onStop={stop}

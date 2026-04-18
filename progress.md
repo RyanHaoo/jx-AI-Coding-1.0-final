@@ -42,6 +42,7 @@
 - [x] **HITL 真实建单**：草稿卡 → `POST /api/tickets`；成功后 `[HITL_RESULT]` 回灌对话；气泡展示「已提交」等文案（持久化消息，刷新不丢）
 - [x] **服务端写入**：`createTicket` / `updateTicket*` 使用 `SUPABASE_SERVICE_ROLE_KEY`（API 层已鉴权），与「仅 Next API 写入、RLS 拦直连」的设计一致；开发环境身份 cookie `secure` 调整
 - [x] **体验**：助手流式未结束时锁定「提交工单」；成功后 system prompt 要求助手回复中带 `/mobile/tickets/{id}` 链接
+- [x] **Agent 对话 UI（2026）**：页内去掉与顶栏重复的「智能助手」标题；底部输入条多行时输入区与边框容器同步增高（`InputGroup` 使用 `min-h-8 h-auto` 等）；`messages` 空窗期用 ref 快照避免列表闪回初始历史；加载态左下三点跳动；助手 Markdown 中工单链接经 `AgentMarkdownAnchor` 用 Next `Link` 同页打开，并保留主色下划线样式
 - [ ] 接入 LangSmith 监控（可选）
 
 ## 阶段 5：Agent 对话模块（核心路径已接真实工具，可选监控待定）

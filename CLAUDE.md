@@ -58,6 +58,7 @@ components/
 ├── ai-elements/                  # AI 对话元素（conversation/message/prompt-input）
 ├── agent/                        # Agent 聊天 UI
 │   ├── agent-chat.tsx            # 主聊天界面（消息流 + tool_call 路由 + HITL 气泡文案）
+│   ├── agent-markdown-anchor.tsx # Streamdown 自定义 `<a>`：工单路径走 next/link 同页跳转，样式对齐 text-primary underline
 │   ├── use-agent-chat.ts         # useStream 封装
 │   ├── tool-call-card.tsx        # 工具调用展示卡
 │   └── create-ticket-card.tsx    # HITL 建单表单（流式结束后可提交 → POST /api/tickets）
@@ -211,6 +212,7 @@ lib/
 - Supabase Postgres（仅复用现有用户身份与 LangGraph checkpoint；本特性不新增数据表） (006-coze-subagent)
 
 ## Recent Changes
+- Agent 对话体验：`agent-chat` 用 ref 保存最近非空 `messages` 避免提交后列表闪回 SSR 快照；底部输入区 `InputGroup`/`Textarea` 布局使多行时外框随内容增高；加载态三点指示器；`agent-markdown-anchor.tsx` 将 `/mobile|dashboard/tickets/:id` 链接改为 `next/link` 同页跳转并保留 Streamdown 默认链接样式（`text-primary underline`）；`assistant/page` 移除重复页面标题
 - Agent HITL 与工单 API：`create_ticket` 草稿卡提交 → `POST /api/tickets`；用户侧持久化 `[HITL_RESULT]` 消息，列表气泡展示「已提交」/「提交失败」而非原始 JSON；助手流式未完成前禁用提交按钮；prompt 约定成功回灌后回复须含 markdown 工单链接
 - `lib/supabase/service-role.ts` + `SUPABASE_SERVICE_ROLE_KEY`：`lib/tickets.ts` 中 insert/update 使用 service role，解决 RLS 与用户会话 JWT 不一致导致的 42501
 - `app/mobile/assistant/page.tsx`：向下传入 `projectId`，`/api/assignees` 与建单卡责任人列表稳定

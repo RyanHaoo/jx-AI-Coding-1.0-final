@@ -29,8 +29,7 @@ export default async function AssistantPage() {
     cookieIdentity?.projectId ?? identities[0]?.projectId ?? undefined;
 
   return (
-    <div className="flex h-[calc(100dvh-8rem)] flex-col">
-      <h2 className="px-3 py-2 text-lg font-medium">智能助手</h2>
+    <div className="flex h-[calc(100dvh-6rem)] min-h-0 flex-col">
       <div className="min-h-0 flex-1">
         <AgentChat
           userId={user.id}
