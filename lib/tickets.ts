@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { createServiceRoleClient } from "@/lib/supabase/service-role";
 import type {
   Profile,
   Project,
@@ -79,7 +80,8 @@ export async function createTicket(
   creatorId: string,
   input: CreateTicketInput,
 ): Promise<TicketWithRelations | null> {
-  const supabase = await createClient();
+  const supabase = createServiceRoleClient();
+
   const { data, error } = await supabase
     .from("tickets")
     .insert({
@@ -112,7 +114,7 @@ export async function updateTicket(
   id: number,
   input: UpdateTicketInput,
 ): Promise<TicketWithRelations | null> {
-  const supabase = await createClient();
+  const supabase = createServiceRoleClient();
   const { data, error } = await supabase
     .from("tickets")
     .update(input)
@@ -128,7 +130,7 @@ export async function updateTicketStatus(
   id: number,
   status: TicketStatus,
 ): Promise<TicketWithRelations | null> {
-  const supabase = await createClient();
+  const supabase = createServiceRoleClient();
   const { data, error } = await supabase
     .from("tickets")
     .update({ status })

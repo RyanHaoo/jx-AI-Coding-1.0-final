@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getIdentityFromCookie } from "@/lib/auth";
+import { getIdentitiesForUser, getIdentityFromCookie } from "@/lib/auth";
 import { getAssigneesByProject } from "@/lib/profiles";
 import { createClient } from "@/lib/supabase/server";
 
@@ -14,12 +14,22 @@ export async function GET(request: Request) {
 
   const url = new URL(request.url);
   const projectIdParam = url.searchParams.get("projectId");
-  const identity = await getIdentityFromCookie();
-  const projectId = projectIdParam
-    ? Number(projectIdParam)
-    : (identity?.projectId ?? null);
 
-  if (!projectId || Number.isNaN(projectId)) {
+  let projectId: number | null = null;
+  if (projectIdParam != null && projectIdParam !== "") {
+    const n = Number(projectIdParam);
+    if (!Number.isNaN(n)) projectId = n;
+  }
+  if (projectId == null) {
+    const identity = await getIdentityFromCookie();
+    projectId = identity?.projectId ?? null;
+  }
+  if (projectId == null) {
+    const identities = await getIdentitiesForUser(user.id);
+    projectId = identities[0]?.projectId ?? null;
+  }
+
+  if (projectId == null || Number.isNaN(projectId)) {
     return NextResponse.json(
       { error: "缺少有效的 projectId" },
       { status: 400 },

@@ -48,7 +48,7 @@ export function buildSystemPrompt(
     `- \`create_ticket\` 为人机协同（HITL）工具：你发起调用后会立刻收到包含 \`pending_user_confirmation\` 的占位返回，此时：`,
     `  - 请回复「已为你生成建单草稿，请在上方卡片中确认提交。」后立即结束本轮，不再调用任何工具，等待用户在前端确认。`,
     `  - 用户在前端提交卡片后，系统会以用户消息形式向你回传一条以 \`[HITL_RESULT]\` 开头、后接 JSON 的通知：`,
-    `    - 成功样例：\`[HITL_RESULT] {"status":"success","ticket_id":42}\`，此时请回复「工单已创建成功，编号为 #42」，并将编号替换为实际值；严禁再次调用 \`create_ticket\`。`,
+    `    - 成功样例：\`[HITL_RESULT] {"status":"success","ticket_id":42}\`，此时请用 1～2 句话确认创建成功，且**正文中必须包含**工单详情链接（markdown）：\`[查看工单 #42](/mobile/tickets/42)\`，编号与路径中的 id 均替换为实际 \`ticket_id\`；严禁再次调用 \`create_ticket\`。`,
     `    - 失败样例：\`[HITL_RESULT] {"status":"error","message":"..."}\`，此时请回复「工单创建失败：<message>」并建议用户检查后重试；严禁再次调用 \`create_ticket\`。`,
     `  - 严禁在收到 \`[HITL_RESULT]\` 之前编造「创建成功」，也严禁把 \`[HITL_RESULT]\` 本身或其中的 JSON 原文复述给用户。`,
     ``,

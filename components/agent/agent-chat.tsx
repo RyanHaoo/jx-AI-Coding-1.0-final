@@ -28,6 +28,10 @@ import {
   PromptInputTextarea,
 } from "@/components/ai-elements/prompt-input";
 import { InputGroupAddon } from "@/components/ui/input-group";
+import {
+  normalizeCreateTicketDraftArgs,
+  parseToolCallArgsRecord,
+} from "@/lib/agent/create-ticket-draft-args";
 
 import {
   CreateTicketCard,
@@ -39,6 +43,8 @@ import { useAgentChat } from "./use-agent-chat";
 interface AgentChatProps {
   userId: string;
   initialMessages?: unknown[];
+  /** 用于建单责任人列表；与服务端 cookie 兜底一致 */
+  projectId?: number;
 }
 
 type ToolCall = {
@@ -119,7 +125,20 @@ function extractToolCallId(text: string): string | null {
   }
 }
 
-export function AgentChat({ userId, initialMessages }: AgentChatProps) {
+/** 持久化的 HITL 回传消息在气泡中的展示文案（不写死 JSON） */
+function hitlUserBubbleLabel(text: string): string | null {
+  const parsed = parseHitlResult(text);
+  if (!parsed) return null;
+  if (parsed.status === "success") return "已提交";
+  const hint = parsed.message?.trim();
+  return hint ? `提交失败：${hint}` : "提交失败";
+}
+
+export function AgentChat({
+  userId,
+  initialMessages,
+  projectId,
+}: AgentChatProps) {
   const { messages, submit, isLoading, error, stop } = useAgentChat({
     userId,
     initialMessages,
@@ -180,7 +199,6 @@ export function AgentChat({ userId, initialMessages }: AgentChatProps) {
 
   const handleTicketSubmitted = useCallback(
     (toolCallId: string | undefined, result: CreateTicketSubmitResult) => {
-      if (isLoading) return;
       const payload = JSON.stringify({
         ...result,
         tool_call_id: toolCallId,
@@ -197,17 +215,12 @@ export function AgentChat({ userId, initialMessages }: AgentChatProps) {
         },
       );
     },
-    [submit, messages, isLoading, userId],
+    [submit, messages, userId],
   );
 
   const items = sourceMessages.filter((m) => {
     const role = getRole(m);
-    if (role === "user") {
-      const text = getText(m.content);
-      // 隐藏 HITL 回传消息，不作为普通用户气泡展示
-      if (text.startsWith(HITL_RESULT_PREFIX)) return false;
-      return true;
-    }
+    if (role === "user") return true;
     return role === "assistant";
   });
 
@@ -231,6 +244,17 @@ export function AgentChat({ userId, initialMessages }: AgentChatProps) {
 
               if (role === "user") {
                 if (!text) return null;
+                if (text.startsWith(HITL_RESULT_PREFIX)) {
+                  const label = hitlUserBubbleLabel(text);
+                  if (!label) return null;
+                  return (
+                    <Message key={key} from="user">
+                      <MessageContent>
+                        <span className="whitespace-pre-wrap">{label}</span>
+                      </MessageContent>
+                    </Message>
+                  );
+                }
                 return (
                   <Message key={key} from="user">
                     <MessageContent>
@@ -259,18 +283,16 @@ export function AgentChat({ userId, initialMessages }: AgentChatProps) {
                           const hitlResolved = tc.id
                             ? hitlResultByToolCallId.get(tc.id)
                             : undefined;
+                          const parsedArgs = parseToolCallArgsRecord(tc.args);
+                          const draftArgs =
+                            normalizeCreateTicketDraftArgs(parsedArgs);
                           return (
                             <CreateTicketCard
                               key={tcKey}
                               toolCallId={tc.id}
-                              args={
-                                tc.args as {
-                                  description?: string;
-                                  location?: string;
-                                  severity?: string;
-                                  specialtyType?: string;
-                                }
-                              }
+                              args={draftArgs}
+                              projectId={projectId}
+                              agentStreaming={isLoading}
                               resolved={hitlResolved ?? null}
                               onSubmitted={(r) =>
                                 handleTicketSubmitted(tc.id, r)

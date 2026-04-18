@@ -4,7 +4,8 @@ import type { IdentityOption, Role } from "@/lib/types";
 
 const COOKIE_OPTIONS = {
   httpOnly: true,
-  secure: true,
+  /** Local HTTP dev：Secure cookie 可能导致浏览器不落盘或不回传 */
+  secure: process.env.NODE_ENV === "production",
   sameSite: "lax" as const,
   path: "/",
   maxAge: 60 * 60 * 24 * 7, // 7 days

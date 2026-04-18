@@ -57,10 +57,10 @@ components/
 ├── ui/                           # shadcn/ui 组件（button, input, label, sheet, badge, select, tabs, …）
 ├── ai-elements/                  # AI 对话元素（conversation/message/prompt-input）
 ├── agent/                        # Agent 聊天 UI
-│   ├── agent-chat.tsx            # 主聊天界面（消息流 + tool_call 路由）
+│   ├── agent-chat.tsx            # 主聊天界面（消息流 + tool_call 路由 + HITL 气泡文案）
 │   ├── use-agent-chat.ts         # useStream 封装
 │   ├── tool-call-card.tsx        # 工具调用展示卡
-│   └── create-ticket-card.tsx    # HITL 建单占位卡
+│   └── create-ticket-card.tsx    # HITL 建单表单（流式结束后可提交 → POST /api/tickets）
 ├── ticket-detail.tsx             # 工单详情组件（展示/编辑双模式）
 ├── ticket-actions.tsx            # 工单状态机动作按钮（解决/拒绝/重开）
 ├── project-chip.tsx              # 项目展示小组件（项目名 + 客户名）
@@ -72,18 +72,21 @@ components/
 └── dashboard-side-nav.tsx        # PC 端侧边导航（3 个菜单项 + 高亮）
 
 lib/
-├── auth.ts                       # 身份 cookie 读写、身份列表查询
+├── auth.ts                       # 身份 cookie 读写、身份列表查询（生产环境 cookie 为 secure）
 ├── auth-actions.ts               # 身份切换 Server Action
-├── tickets.ts                    # 工单数据访问层（含关联查询）
-├── supabase/                     # client/server/proxy 三端 Supabase 客户端
+├── tickets.ts                    # 工单数据访问层；写入/状态更新使用 service role（避免 RLS 与用户 JWT 不一致）
+├── supabase/                     # client / server / proxy / **service-role**（仅服务端 mutations）
 ├── utils.ts                      # cn() 工具函数
 ├── types.ts                      # 全局类型（角色、工单、项目等）
 └── agent/
     ├── index.ts                  # createAgent 单例 + 历史修剪工具
     ├── model.ts                  # OpenRouter ChatOpenAI 配置
     ├── checkpoints.ts            # PostgresSaver 单例 + setup
-    ├── prompts.ts                # 身份驱动 system prompt
-    └── tools.ts                  # 三个 mock 工具定义
+    ├── prompts.ts                # 身份驱动 system prompt（含 queryTicket / Coze / HITL 链接约定）
+    ├── tools.ts                  # queryTicket（MCP）、consult_construction_knowledge（Coze）、create_ticket（HITL）
+    ├── coze-client.ts            # Coze 流式知识，仅聚合最终 answer
+    ├── mcp-client.ts             # MCP MultiServer 客户端（工单查询）
+    └── create-ticket-draft-args.ts # 解析/规范化 create_ticket 工具参数（流式补全预填）
 ```
 
 ## 架构
@@ -125,7 +128,7 @@ lib/
 - `tickets` — 工单（状态：待处理/已完成/已拒绝）
 - `ticket_logs` — 工单全生命周期变更记录（本阶段暂未实现）
 
-工单写入**必须**经过 Next.js 后端 API，不可直接调用 Supabase Auto API，因为需要状态机校验与权限控制。
+工单写入**必须**经过 Next.js 后端 API，不可从浏览器直连 Supabase 写入；数据库 RLS 用于拦截直连。Route Handler 在校验登录与角色后，服务端使用 **`SUPABASE_SERVICE_ROLE_KEY`**（仅环境变量，勿暴露给前端）对 `tickets` 执行 insert/update，与上述设计一致。
 
 ### 工单状态机
 
@@ -208,6 +211,9 @@ lib/
 - Supabase Postgres（仅复用现有用户身份与 LangGraph checkpoint；本特性不新增数据表） (006-coze-subagent)
 
 ## Recent Changes
+- Agent HITL 与工单 API：`create_ticket` 草稿卡提交 → `POST /api/tickets`；用户侧持久化 `[HITL_RESULT]` 消息，列表气泡展示「已提交」/「提交失败」而非原始 JSON；助手流式未完成前禁用提交按钮；prompt 约定成功回灌后回复须含 markdown 工单链接
+- `lib/supabase/service-role.ts` + `SUPABASE_SERVICE_ROLE_KEY`：`lib/tickets.ts` 中 insert/update 使用 service role，解决 RLS 与用户会话 JWT 不一致导致的 42501
+- `app/mobile/assistant/page.tsx`：向下传入 `projectId`，`/api/assignees` 与建单卡责任人列表稳定
 - 006-coze-subagent: Coze 知识子 Agent 接入为主 Agent 工具（`consult_construction_knowledge`），工具返回仅最终文本；卡片不展示原文
   - 新增 `@coze/api`，环境变量：`COZE_BASE_URL` / `COZE_API_TOKEN` / `COZE_BOT_ID`
   - `lib/agent/coze-client.ts`：流式聚合最终 answer；错误降级；支持 abort

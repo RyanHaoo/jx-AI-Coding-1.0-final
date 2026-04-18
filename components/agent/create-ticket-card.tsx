@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,6 +14,8 @@ import {
 } from "@/components/ui/select";
 import { Spinner } from "@/components/ui/spinner";
 import { Textarea } from "@/components/ui/textarea";
+import type { CreateTicketDraftArgs } from "@/lib/agent/create-ticket-draft-args";
+import { normalizeCreateTicketDraftArgs } from "@/lib/agent/create-ticket-draft-args";
 import type { Severity, SpecialtyType } from "@/lib/types";
 
 export interface CreateTicketSubmitResult {
@@ -25,12 +26,11 @@ export interface CreateTicketSubmitResult {
 
 interface CreateTicketCardProps {
   toolCallId?: string;
-  args?: {
-    description?: string;
-    location?: string;
-    severity?: string;
-    specialtyType?: string;
-  };
+  args?: CreateTicketDraftArgs;
+  /** 显式传入时优先用于加载施工方列表（避免仅靠 cookie） */
+  projectId?: number;
+  /** 助手仍在流式输出时为 true，此时不解锁「提交工单」 */
+  agentStreaming?: boolean;
   resolved?: CreateTicketSubmitResult | null;
   onSubmitted?: (result: CreateTicketSubmitResult) => void;
 }
@@ -59,16 +59,24 @@ function coerceSpecialty(v?: string): SpecialtyType {
 export function CreateTicketCard({
   toolCallId,
   args,
+  projectId,
+  agentStreaming = false,
   resolved,
   onSubmitted,
 }: CreateTicketCardProps) {
-  const [description, setDescription] = useState(args?.description ?? "");
-  const [location, setLocation] = useState(args?.location ?? "");
-  const [severity, setSeverity] = useState<Severity>(
-    coerceSeverity(args?.severity),
+  const draft = normalizeCreateTicketDraftArgs(
+    args && typeof args === "object"
+      ? (args as Record<string, unknown>)
+      : undefined,
   );
-  const [specialtyType, setSpecialtyType] = useState<SpecialtyType>(
-    coerceSpecialty(args?.specialtyType),
+
+  const [description, setDescription] = useState(() => draft.description ?? "");
+  const [location, setLocation] = useState(() => draft.location ?? "");
+  const [severity, setSeverity] = useState<Severity>(() =>
+    coerceSeverity(draft.severity),
+  );
+  const [specialtyType, setSpecialtyType] = useState<SpecialtyType>(() =>
+    coerceSpecialty(draft.specialtyType),
   );
   const [detail, setDetail] = useState("");
   const [assigneeId, setAssigneeId] = useState<string>("");
@@ -81,12 +89,39 @@ export function CreateTicketCard({
 
   const isDone = Boolean(resolved);
   const readOnly = isDone || submitting;
+  const submitLockedByAgent = !isDone && agentStreaming;
+
+  useEffect(() => {
+    if (isDone) return;
+    setDescription((prev) =>
+      draft.description !== undefined ? draft.description : prev,
+    );
+    setLocation((prev) =>
+      draft.location !== undefined ? draft.location : prev,
+    );
+    if (draft.severity) setSeverity(coerceSeverity(draft.severity));
+    if (draft.specialtyType)
+      setSpecialtyType(coerceSpecialty(draft.specialtyType));
+  }, [
+    isDone,
+    draft.description,
+    draft.location,
+    draft.severity,
+    draft.specialtyType,
+  ]);
+
+  const assigneesUrl = useMemo(() => {
+    if (typeof projectId === "number" && !Number.isNaN(projectId)) {
+      return `/api/assignees?projectId=${encodeURIComponent(String(projectId))}`;
+    }
+    return "/api/assignees";
+  }, [projectId]);
 
   useEffect(() => {
     if (isDone) return;
     let cancelled = false;
     setLoadingAssignees(true);
-    fetch("/api/assignees", { credentials: "include" })
+    fetch(assigneesUrl, { credentials: "include" })
       .then(async (res) => {
         if (!res.ok) throw new Error(await res.text());
         return (await res.json()) as { assignees: AssigneeOption[] };
@@ -105,7 +140,7 @@ export function CreateTicketCard({
     return () => {
       cancelled = true;
     };
-  }, [isDone]);
+  }, [isDone, assigneesUrl]);
 
   const selectedAssignee = useMemo(
     () => assignees.find((a) => a.id === assigneeId),
@@ -180,6 +215,10 @@ export function CreateTicketCard({
               提交失败：{resolved?.message ?? "未知错误"}
             </span>
           )
+        ) : submitLockedByAgent ? (
+          <span className="text-muted-foreground text-xs">
+            助手正在回复，完成后可提交
+          </span>
         ) : (
           <span className="text-muted-foreground text-xs">
             请确认以下信息后提交
@@ -304,22 +343,29 @@ export function CreateTicketCard({
       ) : null}
 
       {!isDone ? (
-        <div className="mt-3 flex justify-end">
+        <div className="mt-3 flex flex-col items-end gap-1.5">
           <Button
             size="sm"
             type="button"
             onClick={handleSubmit}
-            disabled={submitting}
+            disabled={submitting || submitLockedByAgent}
           >
             {submitting ? (
               <>
                 <Spinner className="size-3" />
                 提交中...
               </>
+            ) : submitLockedByAgent ? (
+              "等待助手完成…"
             ) : (
               "提交工单"
             )}
           </Button>
+          {submitLockedByAgent ? (
+            <p className="text-muted-foreground max-w-full text-right text-[11px] leading-snug">
+              助手生成完成后按钮将变为「提交工单」
+            </p>
+          ) : null}
         </div>
       ) : null}
     </div>

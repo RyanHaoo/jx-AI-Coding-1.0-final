@@ -36,16 +36,22 @@
 - [x] 修复 `projectName` 解析兼容性（`projects` 关联对象/数组两种返回形态）
 - [x] 修复移动端工单列表接口 `projectId` 丢失导致的 400 报错
 
-## 阶段 5：Agent 对话模块（Mock 已完成，真实工具待接入）
-- [x] Agent 对话页 UI（`/mobile/assistant`）— 消息流、输入区、加载态、工具调用卡、HITL 占位卡
+## 最近迭代（助手 / HITL / 工单写入，2026）
+- [x] **工单 MCP 查询**：`queryTicket` 经本地 MCP + `supabase_access_token` 查询真实工单
+- [x] **Coze 知识**：`consult_construction_knowledge`（原 mock）→ 扣子流式 API，卡片不展示原文
+- [x] **HITL 真实建单**：草稿卡 → `POST /api/tickets`；成功后 `[HITL_RESULT]` 回灌对话；气泡展示「已提交」等文案（持久化消息，刷新不丢）
+- [x] **服务端写入**：`createTicket` / `updateTicket*` 使用 `SUPABASE_SERVICE_ROLE_KEY`（API 层已鉴权），与「仅 Next API 写入、RLS 拦直连」的设计一致；开发环境身份 cookie `secure` 调整
+- [x] **体验**：助手流式未结束时锁定「提交工单」；成功后 system prompt 要求助手回复中带 `/mobile/tickets/{id}` 链接
+- [ ] 接入 LangSmith 监控（可选）
+
+## 阶段 5：Agent 对话模块（核心路径已接真实工具，可选监控待定）
+- [x] Agent 对话页 UI（`/mobile/assistant`）— 消息流、输入区、加载态、工具调用卡、HITL 建单卡
 - [x] 搭建主 Agent 后端（LangChain `createAgent`、身份驱动 System Prompt、意图路由与建单权限）
 - [x] 前端对接 SSE 流式响应（`FetchStreamTransport` + `useStream`）
 - [x] PostgresSaver 对话持久化（Supabase Transaction Pooler，thread_id = user.id，6 轮裁剪）
-- [x] 三个 mock 工具占位：`queryTicket` / `knowledge_query` / `create_ticket`（均返回 `mock success`）
-- [x] HITL 前端拦截：`create_ticket` 调用渲染带提交按钮的占位卡（暂无提交逻辑）
-- [ ] 工单查询真实实现（接入 tickets 数据表，取代 `queryTicket` mock）
-- [ ] `create_ticket` HITL 真实实现（用户确认 → 后端 API 创建 → 写入 tickets/ticket_logs）
-- [ ] 对接知识获取子 Agent（扣子平台外部 API，取代 `knowledge_query` mock）
+- [x] **工单查询**：`queryTicket` — MCP 真实数据（见 `006-agent-ticket-query-mcp`）
+- [x] **施工知识**：`consult_construction_knowledge` — Coze 子 Agent（见 `006-coze-subagent`）
+- [x] **建单 HITL**：`create_ticket` — 前端表单 → `POST /api/tickets` → `[HITL_RESULT]` 驱动助手后续回复
 - [ ] 接入 LangSmith 监控
 
 ## 阶段 6：PC 端管理模块（Mock 数据 → 真实数据）
