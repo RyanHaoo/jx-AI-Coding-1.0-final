@@ -8,11 +8,30 @@ import { allTools } from "./tools";
 
 export type AgentMessageDict = ReturnType<typeof toMessageDict>;
 
-export const agent = createAgent({
-  model,
-  tools: allTools,
-  checkpointer: getCheckpointer(),
-});
+function createLangAgent() {
+  return createAgent({
+    model,
+    tools: allTools,
+    checkpointer: getCheckpointer(),
+  });
+}
+
+let agentPromise: Promise<ReturnType<typeof createLangAgent>> | null = null;
+
+async function getAgent() {
+  if (!agentPromise) {
+    agentPromise = Promise.resolve(createLangAgent());
+  }
+  return agentPromise;
+}
+
+export async function streamAgent(
+  input: Parameters<ReturnType<typeof createLangAgent>["stream"]>[0],
+  options: Parameters<ReturnType<typeof createLangAgent>["stream"]>[1],
+) {
+  const agent = await getAgent();
+  return agent.stream(input, options);
+}
 
 const MAX_ROUNDS = 6;
 
@@ -43,6 +62,7 @@ type SnapshotValues = { messages?: BaseMessage[] } | undefined;
 
 async function readMessages(threadId: string): Promise<BaseMessage[]> {
   try {
+    const agent = await getAgent();
     const snapshot = (await agent.getState({
       configurable: { thread_id: threadId },
     })) as { values?: SnapshotValues } | null;
@@ -68,6 +88,7 @@ export async function pruneThreadIfExceeded(threadId: string): Promise<void> {
     .filter((m) => m.id && !keep.has(m.id))
     .map((m) => new RemoveMessage({ id: m.id as string }));
   if (toRemove.length > 0) {
+    const agent = await getAgent();
     await agent.updateState(
       { configurable: { thread_id: threadId } },
       { messages: toRemove },

@@ -278,12 +278,20 @@ export function AgentChat({ userId, initialMessages }: AgentChatProps) {
                             />
                           );
                         }
+                        const toolName = tc.name ?? "tool";
+                        const rawResult =
+                          status === "done"
+                            ? getText(result?.content)
+                            : undefined;
+                        const hideToolResult =
+                          toolName === "consult_construction_knowledge";
+
                         return (
                           <ToolCallCard
                             key={tcKey}
-                            name={tc.name ?? "tool"}
+                            name={toolName}
                             status={status}
-                            result={getText(result?.content)}
+                            result={hideToolResult ? undefined : rawResult}
                           />
                         );
                       })}
