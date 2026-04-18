@@ -46,8 +46,9 @@ export async function updateSession(request: NextRequest) {
     const activeRole = request.cookies.get("active_role")?.value;
     const isAdmin = activeRole === "管理员";
 
-    // Already logged in visiting /login → redirect to home
-    if (pathname === "/login") {
+    // Already logged in visiting /login (GET navigation only) → redirect to home.
+    // Server Action POST requests from /login must pass through, otherwise action response breaks.
+    if (pathname === "/login" && request.method === "GET") {
       const homeUrl = isAdmin ? "/dashboard/overview" : "/mobile/assistant";
       return NextResponse.redirect(new URL(homeUrl, request.url));
     }

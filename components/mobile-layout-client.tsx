@@ -1,6 +1,6 @@
 "use client";
 
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import { MobileSideDrawer } from "@/components/mobile-side-drawer";
 import { MobileTopBar } from "@/components/mobile-top-bar";
@@ -10,6 +10,8 @@ const routeTitleMap: Record<string, string> = {
   "/mobile/assistant": "智能助手",
   "/mobile/tickets": "工单列表",
 };
+
+const TICKET_DETAIL_PATTERN = /^\/mobile\/tickets\/[^/]+$/;
 
 interface MobileLayoutClientProps {
   children: React.ReactNode;
@@ -30,17 +32,26 @@ export function MobileLayoutClient({
 }: MobileLayoutClientProps) {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const pathname = usePathname();
+  const router = useRouter();
 
-  const title =
-    routeTitleMap[pathname] ??
-    Object.entries(routeTitleMap).find(([route]) =>
-      pathname.startsWith(`${route}/`),
-    )?.[1] ??
-    "智能助手";
+  const isTicketDetail = TICKET_DETAIL_PATTERN.test(pathname);
+
+  const title = isTicketDetail
+    ? "工单详情"
+    : (routeTitleMap[pathname] ??
+      Object.entries(routeTitleMap).find(([route]) =>
+        pathname.startsWith(`${route}/`),
+      )?.[1] ??
+      "智能助手");
 
   return (
     <div className="flex min-h-full flex-1 flex-col">
-      <MobileTopBar title={title} onMenuClick={() => setDrawerOpen(true)} />
+      <MobileTopBar
+        title={title}
+        onMenuClick={() => setDrawerOpen(true)}
+        showBack={isTicketDetail}
+        onBack={() => router.back()}
+      />
       <MobileSideDrawer
         open={drawerOpen}
         onOpenChange={setDrawerOpen}
