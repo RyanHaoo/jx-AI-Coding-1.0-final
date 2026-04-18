@@ -204,8 +204,14 @@ lib/
 - Supabase Postgres（已存在 `tickets`/`profiles`/`projects`/`user_roles` 表；本阶段不新增表结构） (005-mobile-ticket-detail)
 - TypeScript 5.x（Next.js 16.2.3 项目）+ Node.js 运行时脚本（`.mjs`） + `langchain` / `@langchain/core` / `@langchain/mcp-adapters` / `@modelcontextprotocol/sdk` / `zod` / `@supabase/supabase-js` / `@supabase/ssr` (006-agent-ticket-query-mcp)
 - Supabase Postgres（`tickets` + 关联 `profiles`/`projects`，由 RLS 限制可见范围） (006-agent-ticket-query-mcp)
+- TypeScript 5.x + Next.js 16.2.3 (App Router), langchain 1.3.x, @langchain/react, @supabase/ssr, zod, `@coze/api` (006-coze-subagent)
+- Supabase Postgres（仅复用现有用户身份与 LangGraph checkpoint；本特性不新增数据表） (006-coze-subagent)
 
 ## Recent Changes
+- 006-coze-subagent: Coze 知识子 Agent 接入为主 Agent 工具（`consult_construction_knowledge`），工具返回仅最终文本；卡片不展示原文
+  - 新增 `@coze/api`，环境变量：`COZE_BASE_URL` / `COZE_API_TOKEN` / `COZE_BOT_ID`
+  - `lib/agent/coze-client.ts`：流式聚合最终 answer；错误降级；支持 abort
+  - `components/agent/agent-chat.tsx`：施工知识工具卡隐藏工具返回原文（回答仍走 assistant 文本流）
 - 006-agent-ticket-query-mcp: Agent 工单查询 MCP 真实接入（替换 `queryTicket` mock）
   - 新增本地 stdio MCP server：`mcp/ticket-query-server.mjs`，仅暴露 `query_ticket`
   - Agent 侧新增 `lib/agent/mcp-client.ts`，单例管理 `MultiServerMCPClient` 与 `query_ticket` tool 获取

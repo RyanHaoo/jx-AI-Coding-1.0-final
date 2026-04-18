@@ -4,14 +4,14 @@ import { toMessageDict } from "@langchain/langgraph-sdk/ui";
 import { createAgent } from "langchain";
 import { getCheckpointer } from "./checkpoints";
 import { model } from "./model";
-import { createTicket, knowledgeQuery, queryTicket } from "./tools";
+import { allTools } from "./tools";
 
 export type AgentMessageDict = ReturnType<typeof toMessageDict>;
 
 function createLangAgent() {
   return createAgent({
     model,
-    tools: [queryTicket, knowledgeQuery, createTicket],
+    tools: allTools,
     checkpointer: getCheckpointer(),
   });
 }
