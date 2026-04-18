@@ -1,5 +1,6 @@
 import { tool } from "langchain";
 import { z } from "zod";
+import { askCozeKnowledge } from "./coze-client";
 
 const MOCK_SUCCESS = "mock success";
 
@@ -12,14 +13,26 @@ export const queryTicket = tool(async () => MOCK_SUCCESS, {
   }),
 });
 
-export const knowledgeQuery = tool(async () => MOCK_SUCCESS, {
-  name: "knowledge_query",
-  description:
-    "检索建筑施工质检知识库。当用户咨询规范 / 做法 / 标准等知识类问题时调用。参数 question 为用户原始问题。",
-  schema: z.object({
-    question: z.string().describe("用户的原始问题"),
-  }),
-});
+export const consultConstructionKnowledge = tool(
+  async ({ question }, config) => {
+    const threadId = config?.configurable?.thread_id;
+    const userId = typeof threadId === "string" ? threadId : "";
+
+    return askCozeKnowledge({
+      question,
+      userId,
+      signal: config?.signal,
+    });
+  },
+  {
+    name: "consult_construction_knowledge",
+    description:
+      "检索建筑施工质检知识库。当用户咨询施工规范、做法、验收标准、质量要求等知识问题时调用。参数 question 为用户原始问题。",
+    schema: z.object({
+      question: z.string().describe("用户的原始知识问题"),
+    }),
+  },
+);
 
 export const createTicket = tool(async () => MOCK_SUCCESS, {
   name: "create_ticket",
@@ -39,4 +52,8 @@ export const createTicket = tool(async () => MOCK_SUCCESS, {
   }),
 });
 
-export const allTools = [queryTicket, knowledgeQuery, createTicket];
+export const allTools = [
+  queryTicket,
+  consultConstructionKnowledge,
+  createTicket,
+];

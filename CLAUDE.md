@@ -202,6 +202,8 @@ lib/
 - OpenRouter（OPENROUTER_BASE_URL / OPENROUTER_API_KEY / AGENT_MODEL_ID）承载 Agent 主模型 (004-agent-mock-integration)
 - TypeScript 5.x + Next.js 16.2.3 (App Router), React 19.2, @supabase/ssr, @supabase/supabase-js, shadcn/ui 4.2（Badge/Button/Sheet/Tabs/Input/Select）, lucide-react 1.8, Tailwind CSS 4 (005-mobile-ticket-detail)
 - Supabase Postgres（已存在 `tickets`/`profiles`/`projects`/`user_roles` 表；本阶段不新增表结构） (005-mobile-ticket-detail)
+- TypeScript 5.x + Next.js 16.2.3 (App Router), langchain 1.3.x, @langchain/react, @supabase/ssr, zod, 新增 `@coze/api` (006-coze-subagent)
+- Supabase Postgres（仅复用现有用户身份与 LangGraph checkpoint；本特性不新增数据表） (006-coze-subagent)
 
 ## Recent Changes
 - 004-agent-mock-integration: 智能助手对话 Agent Mock 实现（`/mobile/assistant`）

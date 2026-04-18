@@ -11,7 +11,7 @@ interface ToolCallCardProps {
 
 const TOOL_LABELS: Record<string, string> = {
   queryTicket: "查询工单",
-  knowledge_query: "知识库检索",
+  consult_construction_knowledge: "施工知识咨询",
   create_ticket: "创建工单草稿",
 };
 
