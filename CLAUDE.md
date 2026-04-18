@@ -160,6 +160,17 @@ lib/
 - TypeScript 5.x + Next.js 16.2.3 (App Router), React 19.2, @supabase/supabase-js, @supabase/ssr, shadcn/ui 4.2, lucide-react 1.8, Tailwind CSS 4 (002-auth-identity-system)
 - Supabase Postgres (已有 profiles/projects/user_roles 表), httpOnly cookie (身份选择状态) (002-auth-identity-system)
 - Stitch 设计系统 CSS 变量 (--stitch-*)，lucide-react 图标导航 (003-stitch-layout-refactor)
+- langchain / @langchain/core / @langchain/langgraph / @langchain/openai / @langchain/langgraph-checkpoint-postgres / @langchain/langgraph-sdk / @langchain/react / zod (004-agent-mock-integration)
+- Supabase Transaction Pooler (DATABASE_URL) 作为 LangGraph PostgresSaver checkpoint 存储 (004-agent-mock-integration)
+- OpenRouter（OPENROUTER_BASE_URL / OPENROUTER_API_KEY / AGENT_MODEL_ID）承载 Agent 主模型 (004-agent-mock-integration)
 
 ## Recent Changes
+- 004-agent-mock-integration: 智能助手对话 Agent Mock 实现（`/mobile/assistant`）
+  - 技术栈：`createAgent` + Next.js API 路由 (`app/api/agent/route.ts`) SSE + `FetchStreamTransport` + `useStream`
+  - 持久化：`PostgresSaver` 使用 Supabase Transaction Pooler；`thread_id = supabase.auth.getUser().id`
+  - 工具（全部 mock，仅返回 "mock success"）：`queryTicket` / `knowledge_query` / `create_ticket`
+  - HITL：前端拦截 `create_ticket` tool_call，渲染占位卡片（含无逻辑的「提交工单」按钮）
+  - System prompt：基于身份（姓名/部门/角色/项目）+ 意图路由 + 超范围拒答 + 角色建单权限
+  - 历史：RSC 预取最近 6 轮消息；每次请求前用 `RemoveMessage` 将 checkpoint 修剪到最近 6 轮
+  - 新增环境变量：`OPENROUTER_BASE_URL` / `OPENROUTER_API_KEY` / `AGENT_MODEL_ID` / `DATABASE_URL`
 - 001-project-init: Added TypeScript 5.x, Next.js 16.2.3 (App Router) + React 19.2, shadcn/ui 4.2, lucide-react 1.8, Tailwind CSS 4, Biome 2.2

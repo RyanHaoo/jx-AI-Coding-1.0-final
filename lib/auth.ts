@@ -20,8 +20,8 @@ export async function getIdentityFromCookie(): Promise<{
   const projectName = cookieStore.get("active_project_name")?.value;
   const role = cookieStore.get("active_role")?.value as Role | undefined;
 
-  if (!projectId || !projectName || !role) return null;
-  return { projectId: Number(projectId), projectName, role };
+  if (!projectId || !role) return null;
+  return { projectId: Number(projectId), projectName: projectName ?? "", role };
 }
 
 export async function writeIdentityCookie(
@@ -53,9 +53,18 @@ export async function getIdentitiesForUser(
 
   if (error || !data) return [];
 
-  return data.map((row) => ({
-    projectId: row.project_id,
-    projectName: (row.projects as Array<{ name: string }>)[0]?.name ?? "",
-    role: row.role as Role,
-  }));
+  return data.map((row) => {
+    const projects = row.projects as
+      | { name: string }
+      | Array<{ name: string }>
+      | null;
+    const projectName = Array.isArray(projects)
+      ? (projects[0]?.name ?? "")
+      : (projects?.name ?? "");
+    return {
+      projectId: row.project_id,
+      projectName,
+      role: row.role as Role,
+    };
+  });
 }
