@@ -22,33 +22,54 @@ npx tsc --noEmit   # 仅类型检查，不输出
 
 ```
 app/
+├── api/
+│   └── tickets/
+│       ├── route.ts              # 工单列表/创建 API（GET/POST）
+│       └── [id]/
+│           ├── route.ts          # 工单详情/编辑 API（GET/PATCH）
+│           └── actions/
+│               ├── resolve/route.ts
+│               ├── reject/route.ts
+│               └── reopen/route.ts
+├── auth/
+│   └── select-identity/route.ts  # 登录后身份选择 API
 ├── layout.tsx                    # 根布局（Geist 字体、zh-CN、metadata）
 ├── page.tsx                      # 首页（双端入口按钮）
-├── globals.css                   # 全局样式（shadcn/ui CSS 变量）
+├── globals.css                   # 全局样式（Stitch + shadcn/ui CSS 变量）
 ├── login/
+│   ├── actions.ts                # 登录与身份选择 Server Actions
 │   └── page.tsx                  # 登录页（工号/密码 + redirect 校验）
 ├── mobile/
-│   ├── layout.tsx                # 移动端共享布局（顶栏 + 侧边抽屉）
-│   ├── assistant/page.tsx        # 智能助手（占位页）
+│   ├── layout.tsx                # 移动端共享布局（顶栏 + 侧边抽屉 + 身份入口）
+│   ├── assistant/page.tsx        # 智能助手（阶段 5 待实现）
 │   └── tickets/
-│       ├── page.tsx              # 工单列表（占位页）
-│       └── [id]/page.tsx         # 工单详情（占位页）
+│       ├── page.tsx              # 工单列表（真实数据加载 + 列表渲染）
+│       └── [id]/page.tsx         # 工单详情（真实数据 + 编辑/状态操作）
 └── dashboard/
     ├── layout.tsx                # PC 端共享布局（顶栏 + 左侧导航）
-    ├── overview/page.tsx         # 数据大盘（占位页）
-    ├── tickets/page.tsx          # 工单中心（占位页）
-    └── knowledge/page.tsx        # 知识运营（占位页）
+    ├── overview/page.tsx         # 数据大盘（阶段 6 待实现）
+    ├── tickets/page.tsx          # 工单中心（阶段 6 待实现）
+    └── knowledge/page.tsx        # 知识运营（阶段 6 待实现）
 
 components/
-├── ui/                           # shadcn/ui 组件（button, input, label, sheet）
+├── ui/                           # shadcn/ui 组件（button, input, label, sheet, badge, select）
+├── ticket-detail.tsx             # 工单详情组件（展示/编辑双模式）
+├── ticket-actions.tsx            # 工单状态机动作按钮（解决/拒绝/重开）
+├── project-chip.tsx              # 项目展示小组件（项目名 + 客户名）
+├── identity-dialog.tsx           # 身份选择弹框
+├── user-avatar-chip.tsx          # 用户展示小组件（部门 + 姓名）
 ├── mobile-top-bar.tsx            # 移动端顶栏（汉堡菜单 + 标题）
 ├── mobile-side-drawer.tsx        # 移动端侧边目录（Sheet 从左侧滑入）
 ├── dashboard-top-bar.tsx         # PC 端顶栏（标题 + 用户区域占位）
 └── dashboard-side-nav.tsx        # PC 端侧边导航（3 个菜单项 + 高亮）
 
 lib/
+├── auth.ts                       # 身份 cookie 读写、身份列表查询
+├── auth-actions.ts               # 身份切换 Server Action
+├── tickets.ts                    # 工单数据访问层（含关联查询）
+├── supabase/                     # client/server/proxy 三端 Supabase 客户端
 ├── utils.ts                      # cn() 工具函数
-└── types.ts                      # 全局类型（6 枚举 + 5 实体接口）
+└── types.ts                      # 全局类型（角色、工单、项目等）
 ```
 
 ## 架构
@@ -88,20 +109,20 @@ lib/
 - `projects` — 施工项目
 - `user_roles` — 用户 × 项目 × 角色三元组（质检员/施工方/管理员）
 - `tickets` — 工单（状态：待处理/已完成/已拒绝）
-- `ticket_logs` — 工单全生命周期变更记录
+- `ticket_logs` — 工单全生命周期变更记录（本阶段暂未实现）
 
-工单写入**必须**经过 Next.js 后端 API，不可直接调用 Supabase Auto API，因为需要状态机校验和自动创建变更记录。
+工单写入**必须**经过 Next.js 后端 API，不可直接调用 Supabase Auto API，因为需要状态机校验与权限控制。
 
 ### 工单状态机
 
-`待处理 → 已完成`（解决）或 `待处理 → 已拒绝`（拒绝）。已关闭工单可重新打开。状态转换受角色权限控制（详见 `doc/工单状态机.md`）。每次操作必须创建一条 `ticket_logs` 记录。
+`待处理 → 已完成`（解决）或 `待处理 → 已拒绝`（拒绝）。已关闭工单可重新打开。状态转换受角色权限控制（详见 `doc/工单状态机.md`）。本阶段按 spec 跳过 `ticket_logs` 写入。
 
 ## Next.js 16 重要变更
 
 本项目使用 Next.js 16，API 与训练数据可能存在显著差异：
 
 - **Middleware 已更名为 Proxy**：使用 `proxy.ts`（而非 `middleware.ts`），导出 `proxy` 函数或默认导出，`config.matcher` 用法不变
-- **动态路由 params 是 Promise**：用 `React.use(params)` 解包，不要用条件判断绕过
+- **动态路由 params 是 Promise**：在 Server Component / Route Handler 中使用 `await params` 解包，不要用条件判断绕过
 - **useSearchParams 必须包 Suspense**：否则 SSG prerender 报错
 - **不确定的 API 先查文档**：使用任何 Next.js API 前，先阅读 `node_modules/next/dist/docs/` 下的对应文档
 - 默认使用 Server Components，仅在需要交互时添加 `'use client'`
