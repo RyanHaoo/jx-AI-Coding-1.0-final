@@ -92,7 +92,10 @@ export async function createTicket(
     .select(RELATION_FIELDS)
     .single();
 
-  if (error || !data) return null;
+  if (error || !data) {
+    if (error) console.error("[createTicket] insert failed:", error);
+    return null;
+  }
   return flattenRelations(data);
 }
 

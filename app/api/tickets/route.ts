@@ -45,7 +45,7 @@ export async function POST(request: Request) {
 
   const body = (await request.json()) as {
     severity: Severity;
-    project_id: number;
+    project_id?: number;
     assignee_id: string;
     specialty_type: SpecialtyType;
     description: string;
@@ -54,7 +54,15 @@ export async function POST(request: Request) {
     images?: string[];
   };
 
-  const ticket = await createTicket(user.id, body);
+  const projectId = body.project_id ?? identity.projectId;
+  if (!projectId) {
+    return NextResponse.json({ error: "缺少 project_id" }, { status: 400 });
+  }
+
+  const ticket = await createTicket(user.id, {
+    ...body,
+    project_id: projectId,
+  });
   if (!ticket) {
     return NextResponse.json({ error: "工单创建失败" }, { status: 500 });
   }
